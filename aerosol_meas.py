@@ -1,16 +1,21 @@
-
+'''
+    Script to process aerosol measurements from Villum and Zeppelin stations.
+    Observational data (EC and SO4) is matched to model data (NWVF) by date.
+    NWVF is summed over a number of days (default 7 days) to match the observational data.
+'''
 import netCDF4 as nc
 import numpy as np
 import pandas as pd
-#import cartopy.crs as ccrs
-#import cartopy.feature as cfeature
-import xarray as xr
 import matplotlib.pyplot as plt
-import os
-import glob
 
-PLOT_FIG = False
+PLOT_FIG = True
 VERBOSE = True
+
+
+
+###################################################
+# PROCESS RAW DATA TO ACCOUNT FOR MISSING VALUES  #
+###################################################
 
 
 # Define aerosol data file paths
@@ -74,6 +79,10 @@ df_SO4_Zeppelin.dropna(inplace=True)
 
 
 
+###############################################################
+# COMPUTE DIFFERENCE IN DAYS BETWEEN CONSECUTIVE MEASUREMENTS #
+###############################################################
+
 
 # Add a column with the difference in days between consecutive measurements.Fill first value w 0. Count unique values
 df_EC_Villum['days_diff'] = df_EC_Villum['date'].diff().dt.days
@@ -129,6 +138,9 @@ if VERBOSE:
 
 
 
+##################################################
+# PROCESS MODEL DATA TO MATCH OBSERVATIONAL DATA #
+##################################################
 
 def process_data(observational_data, model_data, max_sum_days = 14, default_sum_days=7):
     '''
@@ -210,56 +222,10 @@ nwvf_SO4_Zeppelin.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data/M
 
 
 
-# # Plot the results
-# fig, ax = plt.subplots(3,1, figsize=(12,8), sharex=True)
 
-# ax[0].plot(df_EC_Villum['date'], df_EC_Villum['EC'], linewidth=0.7, color='k', label='Villum', marker='o', linestyle='-', markersize=2)
-# ax[0].plot(df_EC_Zeppelin['date'], df_EC_Zeppelin['EC'], linewidth=0.7, color='r', label='Zeppelin', marker='o', linestyle='-', markersize=2)
-# ax[0].set_title('EC')
-# ax[0].set_ylabel('EC []')
-# ax[0].legend()
-
-# ax[1].plot(df_SO4_Villum['date'], df_SO4_Villum['SO4'], linewidth=0.7, color='b', label='Villum', marker='o', linestyle='-', markersize=2)
-# ax[1].plot(df_SO4_Zeppelin['date'], df_SO4_Zeppelin['SO4'], linewidth=0.7, color='g', label='Zeppelin', marker='o', linestyle='-', markersize=2)
-# ax[1].set_title('SO4')
-# ax[1].set_ylabel('SO4 []')
-# ax[1].legend()
-
-# ax[2].plot(nwvf_EC_Villum['date'], nwvf_EC_Villum['nwvf_time_integral'], linewidth=0.7, color='k', label='EC Villum', marker='o', linestyle='-', markersize=2)
-# ax[2].plot(nwvf_EC_Zeppelin['date'], nwvf_EC_Zeppelin['nwvf_time_integral'], linewidth=0.7, color='r', label='EC Zeppelin', marker='o', linestyle='-', markersize=2)
-# ax[2].plot(nwvf_SO4_Villum['date'], nwvf_SO4_Villum['nwvf_time_integral'], linewidth=0.7, color='b', label='SO4 Villum', marker='o', linestyle='-', markersize=2)
-# ax[2].plot(nwvf_SO4_Zeppelin['date'], nwvf_SO4_Zeppelin['nwvf_time_integral'], linewidth=0.7, color='g', label='SO4 Zeppelin', marker='o', linestyle='-', markersize=2)
-# ax[2].set_ylim([min(nwvf_ts['nwvf'])-1e7, 1.5e7])
-# ax[2].set_title('NWVF time integral')
-# ax[2].set_ylabel('NWVF time integral [kg m$^{-1}$]')
-# ax[2].set_xlabel('Year')
-
-# fig.tight_layout()
-
-
-
-
-nwvf_processed_data = [nwvf_EC_Villum, nwvf_EC_Zeppelin, nwvf_SO4_Villum, nwvf_SO4_Zeppelin]
-aerosol_data = [df_EC_Villum, df_EC_Zeppelin, df_SO4_Villum, df_SO4_Zeppelin]
-aerosol_names = ['EC_Villum', 'EC_Zeppelin', 'SO4_Villum', 'SO4_Zeppelin']
-
-# Plot NWVF and corresponding aerosol data in separate subplots, with different y-axes
-fig, ax = plt.subplots(4,1, figsize=(14,8), sharex=True)
-fig.suptitle('NWVF time integral and corresponding aerosol data', fontsize=16)
-
-for i, nwvf_data in enumerate(nwvf_processed_data):
-    ax[i].plot(nwvf_data['date'], nwvf_data['nwvf_time_integral'], linewidth=0.7, color='k', label='NWVF', marker='o', linestyle='-', markersize=2)
-    ax[i].set_title(aerosol_names[i].split('_')[0] + ' ' + aerosol_names[i].split('_')[1])
-    ax[i].set_ylabel('NWVF time integral')
-    ax[i].set_ylim([-2e7, 1.5e7])
-    ax2 = ax[i].twinx()
-    ax2.plot(aerosol_data[i]['date'], aerosol_data[i][aerosol_names[i].split('_')[0]], linewidth=0.7, color='r', label=aerosol_names[i].split('_')[0], marker='o', linestyle='-', markersize=2)
-    ax2.set_ylabel(aerosol_names[i].split('_')[0])
-
-
-    ax[i].legend(loc='upper left')
-    ax2.legend(loc='upper right')
-fig.tight_layout()
+################################################
+# COMPUTE WEEKLY SUMS OF NWVF AND AEROSOL DATA #
+################################################
 
 
 def weekly_sum(df):
@@ -342,6 +308,78 @@ weekly_nwvf_SO4_Zeppelin_nonzero = pd.concat([nwvf_SO4_Zeppelin_weekly_nonzero, 
 weekly_nwvf_SO4_Zeppelin_nonzero.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data/MAIA_processed/weekly_nwvf_SO4_Zeppelin_nonzero.csv', index=True, header=True)
 
 
+df_EC_Villum = df_EC_Villum.reset_index()
+df_SO4_Villum = df_SO4_Villum.reset_index()
+df_EC_Zeppelin = df_EC_Zeppelin.reset_index()
+df_SO4_Zeppelin = df_SO4_Zeppelin.reset_index()
+
+nwvf_EC_Villum = nwvf_EC_Villum.reset_index()
+nwvf_SO4_Villum = nwvf_SO4_Villum.reset_index()
+nwvf_EC_Zeppelin = nwvf_EC_Zeppelin.reset_index()
+nwvf_SO4_Zeppelin = nwvf_SO4_Zeppelin.reset_index()
+
+
+################
+# PLOT FIGURES #
+################
+
+# Plot EC, SO4 and resampled NWVF in separate subplots - color coded by station and aerosol type
+fig, ax = plt.subplots(3,1, figsize=(15,9), sharex=True)
+
+ax[0].plot(df_EC_Villum['date'], df_EC_Villum['EC'], linewidth=0.7, color='k', label='Villum', marker='o', linestyle='-', markersize=2)
+ax[0].plot(df_EC_Zeppelin['date'], df_EC_Zeppelin['EC'], linewidth=0.7, color='r', label='Zeppelin', marker='o', linestyle='-', markersize=2)
+ax[0].set_title('EC')
+ax[0].set_ylabel('EC []')
+ax[0].legend()
+
+ax[1].plot(df_SO4_Villum['date'], df_SO4_Villum['SO4'], linewidth=0.7, color='b', label='Villum', marker='o', linestyle='-', markersize=2)
+ax[1].plot(df_SO4_Zeppelin['date'], df_SO4_Zeppelin['SO4'], linewidth=0.7, color='g', label='Zeppelin', marker='o', linestyle='-', markersize=2)
+ax[1].set_title('SO4')
+ax[1].set_ylabel('SO4 []')
+ax[1].legend()
+
+ax[2].plot(nwvf_EC_Villum['date'], nwvf_EC_Villum['nwvf_time_integral'], linewidth=0.7, color='k', label='EC Villum', marker='o', linestyle='-', markersize=2)
+ax[2].plot(nwvf_EC_Zeppelin['date'], nwvf_EC_Zeppelin['nwvf_time_integral'], linewidth=0.7, color='r', label='EC Zeppelin', marker='o', linestyle='-', markersize=2)
+ax[2].plot(nwvf_SO4_Villum['date'], nwvf_SO4_Villum['nwvf_time_integral'], linewidth=0.7, color='b', label='SO4 Villum', marker='o', linestyle='-', markersize=2)
+ax[2].plot(nwvf_SO4_Zeppelin['date'], nwvf_SO4_Zeppelin['nwvf_time_integral'], linewidth=0.7, color='g', label='SO4 Zeppelin', marker='o', linestyle='-', markersize=2)
+ax[2].set_ylim([min(nwvf_ts['nwvf'])-1e7, 1.5e7])
+ax[2].set_title('NWVF time integral')
+ax[2].set_ylabel('NWVF time integral [kg m$^{-1}$]')
+ax[2].set_xlabel('Year')
+ax[2].legend()
+fig.tight_layout()
+
+
+
+# Store processed NWVF and aerosol data in lists
+nwvf_processed_data = [nwvf_EC_Villum, nwvf_EC_Zeppelin, nwvf_SO4_Villum, nwvf_SO4_Zeppelin]
+aerosol_data = [df_EC_Villum, df_EC_Zeppelin, df_SO4_Villum, df_SO4_Zeppelin]
+aerosol_names = ['EC_Villum', 'EC_Zeppelin', 'SO4_Villum', 'SO4_Zeppelin']
+
+
+# Plot NWVF and corresponding aerosol data in separate subplots, with different y-axes
+fig, ax = plt.subplots(4,1, figsize=(15,9), sharex=True)
+fig.suptitle('NWVF time integral and corresponding aerosol data', fontsize=16)
+
+for i, nwvf_data in enumerate(nwvf_processed_data):
+    ax[i].plot(nwvf_data['date'], nwvf_data['nwvf_time_integral'], linewidth=0.7, color='k', label='NWVF', marker='o', linestyle='-', markersize=2)
+    ax[i].set_title(aerosol_names[i].split('_')[0] + ' ' + aerosol_names[i].split('_')[1])
+    ax[i].set_ylabel('NWVF time integral')
+    ax[i].set_ylim([-2e7, 1.5e7])
+    ax2 = ax[i].twinx()
+    ax2.plot(aerosol_data[i]['date'], aerosol_data[i][aerosol_names[i].split('_')[0]], linewidth=0.7, color='r', label=aerosol_names[i].split('_')[0], marker='o', linestyle='-', markersize=2)
+    ax2.set_ylabel(aerosol_names[i].split('_')[0])
+    ax2.yaxis.label.set_color('r')
+    ax2.tick_params(axis='y', colors='r')
+
+
+    ax[i].legend(loc='upper left')
+    ax2.legend(loc='upper right')
+fig.tight_layout()
+fig.savefig('/Users/au728490/Documents/PhD_AU/  /nwvf_aerosol__matched.png', dpi=600, bbox_inches='tight')
+
+
+#
 fig, ax = plt.subplots(4,1, figsize=(15,9), sharex=True)
 fig.suptitle('NWVF aerosol weekly sums', fontsize=16)
 
@@ -353,92 +391,15 @@ for i, df_mod, df_obs in zip(range(len(weekly_nwvfs)), weekly_nwvfs_nonzero, wee
     ax2 = ax[i].twinx()
     ax2.plot(df_obs.index, df_obs[aerosol_names[i].split('_')[0]], linewidth=0.7, color='r', label=aerosol_names[i].split('_')[0], marker='o', linestyle='-', markersize=2)
     ax2.set_ylabel(aerosol_names[i].split('_')[0])
-
+    ax2.yaxis.label.set_color('r')
+    ax2.tick_params(axis='y', colors='r')
 
     ax[i].legend(loc='upper left')
     ax2.legend(loc='upper right')
 
 fig.tight_layout()
+fig.savefig('/Users/au728490/Documents/PhD_AU/PhD_AU_material/Figures/MAIA/nwvf_aerosol__matched__weekly_sums.png', dpi=600, bbox_inches='tight')
+
+
+
 plt.show()
-
-
-
-#for i, nwvf_data in enumerate(nwvf_processed_data):
-#     # Use resmapled NWVF data as model data
-
-#     # Set the data frame to be processed
-#     df = nwvf_data
-#     # Convert date column to datetime format and set it as index
-#     df['date'] = pd.to_datetime(df['date'])
-#     df.set_index('date', inplace=True)
-#     # Resample the data frame into weekly sums
-#     df_weekly = df.resample('W').sum()
-
-#     # Do the same for the observational data
-#     df_m = aerosol_data[i]
-#     # Convert date column to datetime format and set it as index
-#     df_m['time'] = pd.to_datetime(df_m['time'])
-#     df_m.set_index('time', inplace=True)
-#     # Resample the data frame into weekly sums
-#     df_weekly_m = df_m.resample('W').sum()
-
-#     # Plot the results
-
-
-
-
-
-
-# # Testing method to reduce nwvf dates to only those that are present in the EC and SO4 datasets
-
-# # First remove time from nwvf_ts so only dates remain
-# nwvf_ts['date_only'] = nwvf_ts['time'].dt.date
-
-# # Then find the intersection of the dates in nwvf_ts and the EC and SO4 datasets
-# nwvf_dates = nwvf_ts['date_only']#.unique()
-# EC_Villum_dates = df_EC_Villum['date'].dt.date#.unique()
-# EC_Zeppelin_dates = df_EC_Zeppelin['date'].dt.date#.unique()
-# SO4_Villum_dates = df_SO4_Villum['date'].dt.date#.unique()
-# SO4_Zeppelin_dates = df_SO4_Zeppelin['date'].dt.date#.unique()
-
-# nwvf_EC_Villum_dates = np.intersect1d(nwvf_dates, EC_Villum_dates)
-# nwvf_EC_Zeppelin_dates = np.intersect1d(nwvf_dates, EC_Zeppelin_dates)
-# nwvf_SO4_Villum_dates = np.intersect1d(nwvf_dates, SO4_Villum_dates)
-# nwvf_SO4_Zeppelin_dates = np.intersect1d(nwvf_dates, SO4_Zeppelin_dates)
-
-# print(len(EC_Villum_dates))
-# print('nwvf_EC_Villum_dates: ', len(nwvf_EC_Villum_dates))
-
-
-
-
-if PLOT_FIG:
-    # Make figure
-    fig, ax = plt.subplots(3,1, figsize=(12,8), sharex=True)
-    fig.suptitle('EC, SO4 and NWVF time series', fontsize=16)
-
-
-    # Plot Villum and Zeppelin EC data in first subplot
-    ax[0].plot(df_EC_Villum['date'], df_EC_Villum['EC'], linewidth=0.7, color='k', label='Villum', marker='o', linestyle='-', markersize=2)
-    ax[0].plot(df_EC_Zeppelin['date'], df_EC_Zeppelin['EC'], linewidth=0.7, color='r', label='Zeppelin', marker='o', linestyle='-', markersize=2)
-    ax[0].set_title('EC')
-    ax[0].legend()
-
-    # Plot Villum and Zeppelin SO4 data in second subplot
-    ax[1].plot(df_SO4_Villum['date'], df_SO4_Villum['SO4'], linewidth=0.7, color='k', label='Villum', marker='o', linestyle='-', markersize=2)
-    ax[1].plot(df_SO4_Zeppelin['date'], df_SO4_Zeppelin['SO4'], linewidth=0.7, color='r', label='Zeppelin', marker='o', linestyle='-', markersize=2)
-    ax[1].set_xlim([min(df_SO4_Zeppelin['date']), max(df_SO4_Villum['date'])])
-    ax[1].set_title('SO4')
-    ax[1].set_xlabel('Year')
-    ax[1].legend()
-
-    # Plot NWVF data in third subplot
-    ax[2].plot(nwvf_timestamps, ds_nwvf.variables['nwvf_integral'][:], linewidth=0.7, color='k')
-    ax[2].set_title('Longitudinal integral of NWVF [-45E, 45E] at latitude 70N ')
-    ax[2].set_ylabel('[kg m$^{-1}$ s$^{-1}$]')
-    fig.tight_layout()
-
-    # Save figure
-    #fig.savefig('/Users/au728490/Documents/PhD_AU/PhD_AU_material/Figures/MAIA/EC_SO4_NWVF_time_series.png', dpi=300)
-
-    plt.show()
