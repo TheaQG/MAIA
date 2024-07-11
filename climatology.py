@@ -13,30 +13,30 @@ WITH_ERRORBARS = True
 
 # Load NWVF data, filtered to match aerosol data
 nwvf_EC_Villum = pd.read_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data/'
-                             + 'MAIA_processed/nwvf_EC_Villum.csv',
+                             + 'MAIA_processed/Processed_MAIA/nwvf_EC_Villum.csv',
                              index_col=0, parse_dates=True)
 nwvf_EC_Zeppelin = pd.read_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data/'
-                               + 'MAIA_processed/nwvf_EC_Zeppelin.csv',
+                               + 'MAIA_processed/Processed_MAIA/nwvf_EC_Zeppelin.csv',
                                index_col=0, parse_dates=True)
 nwvf_SO4_Villum = pd.read_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data/'
-                              + 'MAIA_processed/nwvf_SO4_Villum.csv',
+                              + 'MAIA_processed/Processed_MAIA/nwvf_SO4_Villum.csv',
                               index_col=0, parse_dates=True)
 nwvf_SO4_Zeppelin = pd.read_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data/'
-                                + 'MAIA_processed/nwvf_SO4_Zeppelin.csv',
+                                + 'MAIA_processed/Processed_MAIA/nwvf_SO4_Zeppelin.csv',
                                 index_col=0, parse_dates=True)
 
 # Load aerosol data
 df_EC_Villum = pd.read_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data/'
-                           + 'MAIA_processed/df_EC_Villum.csv',
+                           + 'MAIA_processed/Processed_MAIA/df_EC_Villum.csv',
                            index_col=0, parse_dates=True)
 df_EC_Zeppelin = pd.read_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data/'
-                             + 'MAIA_processed/df_EC_Zeppelin.csv',
+                             + 'MAIA_processed/Processed_MAIA/df_EC_Zeppelin.csv',
                              index_col=0, parse_dates=True)
 df_SO4_Villum = pd.read_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data/'
-                            + 'MAIA_processed/df_SO4_Villum.csv',
+                            + 'MAIA_processed/Processed_MAIA/df_SO4_Villum.csv',
                             index_col=0, parse_dates=True)
 df_SO4_Zeppelin = pd.read_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data/'
-                              + 'MAIA_processed/df_SO4_Zeppelin.csv',
+                              + 'MAIA_processed/Processed_MAIA/df_SO4_Zeppelin.csv',
                               index_col=0, parse_dates=True)
 
 
@@ -48,7 +48,7 @@ df_SO4_Zeppelin = pd.read_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/D
 
 # Load NWVF full dataset
 nwvf_ts_raw = pd.read_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/'
-                          + 'Data/MAIA_processed/nwvf_ts.csv',
+                          + 'Data/MAIA_processed/Processed_MAIA/nwvf_ts.csv',
                           index_col=0, parse_dates=True)
 
 # Remove dates where value larger than 0.6e6 (outliers)
@@ -57,7 +57,8 @@ nwvf_ts = nwvf_ts_raw[nwvf_ts_raw['nwvf'] < 0.6e6]
 nwvf_ts.index = pd.to_datetime(nwvf_ts.index)
 
 # Compute a 7-day rolling mean
-nwvf_ts_roll = nwvf_ts.rolling(7).mean()
+days_rolling = 10
+nwvf_ts_roll = nwvf_ts.rolling(days_rolling).mean()
 
 # Plot NWVF, raw (with default values), filtered (removing outliers) and rolling mean
 fig, ax = plt.subplots(3,1, figsize=(15,8), sharex=True)
@@ -82,7 +83,7 @@ if SAVE_FIG:
 # Climatology is 'the average year' (by day/week/month) of a variable, here pooling
 # together all data of specific days/weeks/months and averaging them
 
-
+nwvf_ts = nwvf_ts_roll.copy()
 # Monthly climatology
 nwvf_ts_clim = nwvf_ts.groupby(nwvf_ts.index.month).mean()
 nwvf_ts_clim_std = nwvf_ts.groupby(nwvf_ts.index.month).std()
@@ -96,7 +97,7 @@ nwvf_ts_clim_day = nwvf_ts.groupby(nwvf_ts.index.day_of_year).mean()
 nwvf_ts_clim_day_std = nwvf_ts.groupby(nwvf_ts.index.day_of_year).std()
 
 
-# Plot NWVF (raw, but filtered - i.e. not matched to observational data)
+# Plot NWVF (raw, but filtered - i.e. not matched to observational data, but still with outliers removed)
 # climatology (monthly, weekly, daily)
 fig, ax = plt.subplots(3,1, figsize=(15,8))
 
@@ -108,7 +109,7 @@ ax[0].errorbar(nwvf_ts_clim.index,
                nwvf_ts_clim['nwvf'],
                yerr=nwvf_ts_clim_std['nwvf'],
                fmt='.', color='k', capsize=2, elinewidth=0.7, ms=4)
-ax[0].set_title('Monthly climatology')
+ax[0].set_title(f'Monthly climatology, all NWVF, {days_rolling}-day rolling mean')
 ax[0].set(xlabel='Month', ylabel='NWVF')
 
 # Plot weekly climatology
@@ -119,7 +120,7 @@ ax[1].errorbar(nwvf_ts_clim_week.index,
                nwvf_ts_clim_week['nwvf'],
                yerr=nwvf_ts_clim_week_std['nwvf'],
                fmt='.', color='k', capsize=2, elinewidth=0.7, ms=4)
-ax[1].set_title('Weekly climatology')
+ax[1].set_title(f'Weekly climatology, all NWVF, {days_rolling}-day rolling mean')
 ax[1].set(xlabel='Week', ylabel='NWVF')
 
 # Plot daily climatology
@@ -130,7 +131,7 @@ ax[2].errorbar(nwvf_ts_clim_day.index,
                nwvf_ts_clim_day['nwvf'],
                yerr=nwvf_ts_clim_day_std['nwvf'],
                fmt='.', color='k', capsize=1, elinewidth=0.5, ms=4)
-ax[2].set_title('Daily climatology')
+ax[2].set_title(f'Daily climatology, all NWVF, {days_rolling}-day rolling mean')
 ax[2].set(xlabel='Day of year', ylabel='NWVF')
 
 fig.tight_layout()
@@ -139,7 +140,7 @@ if SAVE_FIG:
     fig.savefig('/Users/au728490/Documents/PhD_AU/PhD_AU_material/'
                 + 'Figures/MAIA/nwvf_climatology__M_W_D.png',
                 dpi=600, bbox_inches='tight')
-#plt.show()
+plt.show()
 
 
 

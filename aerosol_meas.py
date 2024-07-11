@@ -40,7 +40,7 @@ nwvf_timestamps = pd.to_datetime(nwvf_hrs_after_1994, unit='h', origin=pd.Timest
 # Save nwvf and timestamps to csv file
 nwvf_data = ds_nwvf.variables['nwvf_integral'][:]
 nwvf_ts = pd.DataFrame({'time': nwvf_timestamps, 'nwvf': nwvf_data})
-nwvf_ts.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data/MAIA_processed/nwvf_ts.csv', index=False, header=True)
+nwvf_ts.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data/MAIA_processed/Processed_MAIA/nwvf_ts.csv', index=False, header=True)
 
 
 # Convert EC Villum data to numeric and datetime format. Correct one erroneous date.
@@ -102,10 +102,22 @@ df_SO4_Zeppelin['days_diff'].fillna(0, inplace=True)
 unique_diffs_SO4_Zeppelin, counts_SO4_Zeppelin = np.unique(df_SO4_Zeppelin['days_diff'], return_counts=True)
 
 # Save processed aerosol dataframes to csv files
-df_EC_Villum.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data/MAIA_processed/df_EC_Villum.csv', index=False, header=True)
-df_EC_Zeppelin.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data/MAIA_processed/df_EC_Zeppelin.csv', index=False, header=True)
-df_SO4_Villum.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data/MAIA_processed/df_SO4_Villum.csv', index=False, header=True)
-df_SO4_Zeppelin.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data/MAIA_processed/df_SO4_Zeppelin.csv', index=False, header=True)
+df_EC_Villum.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data'
+                    + '/MAIA_processed/Processed_MAIA/df_EC_Villum.csv',
+                    index=False,
+                    header=True)
+df_EC_Zeppelin.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data'
+                    + '/MAIA_processed/Processed_MAIA/df_EC_Zeppelin.csv',
+                    index=False,
+                    header=True)
+df_SO4_Villum.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data'
+                    + '/MAIA_processed/Processed_MAIA/df_SO4_Villum.csv',
+                    index=False,
+                    header=True)
+df_SO4_Zeppelin.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data'
+                    + '/MAIA_processed/Processed_MAIA/df_SO4_Zeppelin.csv',
+                    index=False,
+                    header=True)
 
 if VERBOSE:
     # Print some statistics
@@ -215,10 +227,22 @@ nwvf_SO4_Villum = process_data(df_SO4_Villum, nwvf_ts)
 nwvf_SO4_Zeppelin = process_data(df_SO4_Zeppelin, nwvf_ts)
 
 # Save processed model data to csv files
-nwvf_EC_Villum.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data/MAIA_processed/nwvf_EC_Villum.csv', index=False, header=True)
-nwvf_EC_Zeppelin.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data/MAIA_processed/nwvf_EC_Zeppelin.csv', index=False, header=True)
-nwvf_SO4_Villum.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data/MAIA_processed/nwvf_SO4_Villum.csv', index=False, header=True)
-nwvf_SO4_Zeppelin.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data/MAIA_processed/nwvf_SO4_Zeppelin.csv', index=False, header=True)
+nwvf_EC_Villum.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data'
+                      + '/MAIA_processed/Processed_MAIA/nwvf_EC_Villum.csv',
+                      index=False,
+                      header=True)
+nwvf_EC_Zeppelin.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data'
+                        + '/MAIA_processed/Processed_MAIA/nwvf_EC_Zeppelin.csv',
+                        index=False,
+                        header=True)
+nwvf_SO4_Villum.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data'
+                       + '/MAIA_processed/Processed_MAIA/nwvf_SO4_Villum.csv',
+                       index=False,
+                       header=True)
+nwvf_SO4_Zeppelin.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data'
+                         + '/MAIA_processed/Processed_MAIA/nwvf_SO4_Zeppelin.csv',
+                         index=False,
+                         header=True)
 
 
 
@@ -282,30 +306,62 @@ weekly_earosols_nonzero = [EC_Villum_weekly_nonzero,
 
 
 # Save weekly sums, aerosols and NWVF in same csv file
-weekly_nwvf_EC_Villum = pd.concat([nwvf_EC_Villum_weekly, EC_Villum_weekly], axis=1)
-weekly_nwvf_EC_Villum.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data/MAIA_processed/weekly_nwvf_EC_Villum.csv', index=True, header=True)
+weekly_nwvf_EC_Villum = pd.concat([nwvf_EC_Villum_weekly,
+                                   EC_Villum_weekly], axis=1)
+weekly_nwvf_EC_Villum.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data'
+                             + '/MAIA_processed/weekly_nwvf_EC_Villum.csv',
+                             index=True,
+                             header=True)
 
-weekly_nwvf_EC_Zeppelin = pd.concat([nwvf_EC_Zeppelin_weekly, EC_Zeppelin_weekly], axis=1)
-weekly_nwvf_EC_Zeppelin.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data/MAIA_processed/weekly_nwvf_EC_Zeppelin.csv', index=True, header=True)
+weekly_nwvf_EC_Zeppelin = pd.concat([nwvf_EC_Zeppelin_weekly,
+                                     EC_Zeppelin_weekly], axis=1)
+weekly_nwvf_EC_Zeppelin.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data'
+                               + '/MAIA_processed/weekly_nwvf_EC_Zeppelin.csv',
+                               index=True,
+                               header=True)
 
-weekly_nwvf_SO4_Villum = pd.concat([nwvf_SO4_Villum_weekly, SO4_Villum_weekly], axis=1)
-weekly_nwvf_SO4_Villum.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data/MAIA_processed/weekly_nwvf_SO4_Villum.csv', index=True, header=True)
+weekly_nwvf_SO4_Villum = pd.concat([nwvf_SO4_Villum_weekly,
+                                    SO4_Villum_weekly], axis=1)
+weekly_nwvf_SO4_Villum.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data'
+                              + '/MAIA_processed/weekly_nwvf_SO4_Villum.csv',
+                              index=True,
+                              header=True)
 
-weekly_nwvf_SO4_Zeppelin = pd.concat([nwvf_SO4_Zeppelin_weekly, SO4_Zeppelin_weekly], axis=1)
-weekly_nwvf_SO4_Zeppelin.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data/MAIA_processed/weekly_nwvf_SO4_Zeppelin.csv', index=True, header=True)
+weekly_nwvf_SO4_Zeppelin = pd.concat([nwvf_SO4_Zeppelin_weekly,
+                                      SO4_Zeppelin_weekly], axis=1)
+weekly_nwvf_SO4_Zeppelin.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data'
+                                + '/MAIA_processed/weekly_nwvf_SO4_Zeppelin.csv',
+                                index=True,
+                                header=True)
 
 # Save weekly sums, aerosols and NWVF in same csv file, non-zero values only
-weekly_nwvf_EC_Villum_nonzero = pd.concat([nwvf_EC_Villum_weekly_nonzero, EC_Villum_weekly_nonzero], axis=1)
-weekly_nwvf_EC_Villum_nonzero.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data/MAIA_processed/weekly_nwvf_EC_Villum_nonzero.csv', index=True, header=True)
+weekly_nwvf_EC_Villum_nonzero = pd.concat([nwvf_EC_Villum_weekly_nonzero,
+                                           EC_Villum_weekly_nonzero], axis=1)
+weekly_nwvf_EC_Villum_nonzero.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data'
+                                     + '/MAIA_processed/weekly_nwvf_EC_Villum_nonzero.csv',
+                                     index=True,
+                                     header=True)
 
-weekly_nwvf_EC_Zeppelin_nonzero = pd.concat([nwvf_EC_Zeppelin_weekly_nonzero, EC_Zeppelin_weekly_nonzero], axis=1)
-weekly_nwvf_EC_Zeppelin_nonzero.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data/MAIA_processed/weekly_nwvf_EC_Zeppelin_nonzero.csv', index=True, header=True)
+weekly_nwvf_EC_Zeppelin_nonzero = pd.concat([nwvf_EC_Zeppelin_weekly_nonzero,
+                                             EC_Zeppelin_weekly_nonzero], axis=1)
+weekly_nwvf_EC_Zeppelin_nonzero.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data'
+                                       + '/MAIA_processed/weekly_nwvf_EC_Zeppelin_nonzero.csv',
+                                       index=True,
+                                       header=True)
 
-weekly_nwvf_SO4_Villum_nonzero = pd.concat([nwvf_SO4_Villum_weekly_nonzero, SO4_Villum_weekly_nonzero], axis=1)
-weekly_nwvf_SO4_Villum_nonzero.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data/MAIA_processed/weekly_nwvf_SO4_Villum_nonzero.csv', index=True, header=True)
+weekly_nwvf_SO4_Villum_nonzero = pd.concat([nwvf_SO4_Villum_weekly_nonzero,
+                                            SO4_Villum_weekly_nonzero], axis=1)
+weekly_nwvf_SO4_Villum_nonzero.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data'
+                                      + '/MAIA_processed/weekly_nwvf_SO4_Villum_nonzero.csv',
+                                      index=True,
+                                      header=True)
 
-weekly_nwvf_SO4_Zeppelin_nonzero = pd.concat([nwvf_SO4_Zeppelin_weekly_nonzero, SO4_Zeppelin_weekly_nonzero], axis=1)
-weekly_nwvf_SO4_Zeppelin_nonzero.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data/MAIA_processed/weekly_nwvf_SO4_Zeppelin_nonzero.csv', index=True, header=True)
+weekly_nwvf_SO4_Zeppelin_nonzero = pd.concat([nwvf_SO4_Zeppelin_weekly_nonzero,
+                                              SO4_Zeppelin_weekly_nonzero], axis=1)
+weekly_nwvf_SO4_Zeppelin_nonzero.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data'
+                                        + '/MAIA_processed/weekly_nwvf_SO4_Zeppelin_nonzero.csv',
+                                        index=True,
+                                        header=True)
 
 
 df_EC_Villum = df_EC_Villum.reset_index()
@@ -376,8 +432,8 @@ for i, nwvf_data in enumerate(nwvf_processed_data):
     ax[i].legend(loc='upper left')
     ax2.legend(loc='upper right')
 fig.tight_layout()
-fig.savefig('/Users/au728490/Documents/PhD_AU/  /nwvf_aerosol__matched.png', dpi=600, bbox_inches='tight')
-
+fig.savefig('/Users/au728490/Documents/PhD_AU/PhD_AU_material/Figures/MAIA/nwvf_aerosol__matched.png', dpi=600, bbox_inches='tight')
+ 
 
 #
 fig, ax = plt.subplots(4,1, figsize=(15,9), sharex=True)
@@ -399,6 +455,179 @@ for i, df_mod, df_obs in zip(range(len(weekly_nwvfs)), weekly_nwvfs_nonzero, wee
 
 fig.tight_layout()
 fig.savefig('/Users/au728490/Documents/PhD_AU/PhD_AU_material/Figures/MAIA/nwvf_aerosol__matched__weekly_sums.png', dpi=600, bbox_inches='tight')
+
+
+
+
+
+
+
+#################################################
+# COMPUTE MONTHLY SUMS OF NWVF AND AEROSOL DATA #
+#################################################
+
+
+def monthly_sum(df):
+    '''
+        Function to sum the data in a dataframe over a week.
+        The dataframe must contain a column named 'date' with datetime format.
+        The function returns a dataframe containing the weekly sums.
+    '''
+    # Convert date column to datetime format and set it as index
+    df['date'] = pd.to_datetime(df['date'])
+    df.set_index('date', inplace=True)
+    # Resample the data frame into weekly sums
+    df_monthly = df.resample('M').sum()
+
+    return df_monthly
+
+# NWVF monthly sums
+nwvf_EC_Villum_monthly = monthly_sum(nwvf_EC_Villum)
+nwvf_EC_Villum_monthly_nonzero = nwvf_EC_Villum_monthly[nwvf_EC_Villum_monthly['nwvf_time_integral'] != 0]
+nwvf_EC_Zeppelin_monthly = monthly_sum(nwvf_EC_Zeppelin)
+nwvf_EC_Zeppelin_monthly_nonzero = nwvf_EC_Zeppelin_monthly[nwvf_EC_Zeppelin_monthly['nwvf_time_integral'] != 0]
+nwvf_SO4_Villum_monthly = monthly_sum(nwvf_SO4_Villum)
+nwvf_SO4_Villum_monthly_nonzero = nwvf_SO4_Villum_monthly[nwvf_SO4_Villum_monthly['nwvf_time_integral'] != 0]
+nwvf_SO4_Zeppelin_monthly = monthly_sum(nwvf_SO4_Zeppelin)
+nwvf_SO4_Zeppelin_monthly_nonzero = nwvf_SO4_Zeppelin_monthly[nwvf_SO4_Zeppelin_monthly['nwvf_time_integral'] != 0]
+
+monthly_nwvfs = [nwvf_EC_Villum_monthly,
+                nwvf_EC_Zeppelin_monthly,
+                nwvf_SO4_Villum_monthly,
+                nwvf_SO4_Zeppelin_monthly]
+monthly_nwvfs_nonzero = [nwvf_EC_Villum_monthly_nonzero,
+                        nwvf_EC_Zeppelin_monthly_nonzero,
+                        nwvf_SO4_Villum_monthly_nonzero,
+                        nwvf_SO4_Zeppelin_monthly_nonzero]
+
+# Aerosol monthly sums
+EC_Villum_monthly = monthly_sum(df_EC_Villum)
+EC_Villum_monthly_nonzero = EC_Villum_monthly[EC_Villum_monthly['EC'] != 0]
+EC_Zeppelin_monthly = monthly_sum(df_EC_Zeppelin)
+EC_Zeppelin_monthly_nonzero = EC_Zeppelin_monthly[EC_Zeppelin_monthly['EC'] != 0]
+SO4_Villum_monthly = monthly_sum(df_SO4_Villum)
+SO4_Villum_monthly_nonzero = SO4_Villum_monthly[SO4_Villum_monthly['SO4'] != 0]
+SO4_Zeppelin_monthly = monthly_sum(df_SO4_Zeppelin)
+SO4_Zeppelin_monthly_nonzero = SO4_Zeppelin_monthly[SO4_Zeppelin_monthly['SO4'] != 0]
+
+monthly_earosols = [EC_Villum_monthly,
+                   EC_Zeppelin_monthly,
+                   SO4_Villum_monthly,
+                   SO4_Zeppelin_monthly]
+monthly_earosols_nonzero = [EC_Villum_monthly_nonzero,
+                            EC_Zeppelin_monthly_nonzero,
+                            SO4_Villum_monthly_nonzero,
+                            SO4_Zeppelin_monthly_nonzero]
+
+
+# Save monthly sums, aerosols and NWVF in same csv file
+monthly_nwvf_EC_Villum = pd.concat([nwvf_EC_Villum_monthly, EC_Villum_monthly], axis=1)
+monthly_nwvf_EC_Villum.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data'
+                              + '/MAIA_processed/monthly_nwvf_EC_Villum.csv',
+                              index=True,
+                              header=True)
+
+monthly_nwvf_EC_Zeppelin = pd.concat([nwvf_EC_Zeppelin_monthly, EC_Zeppelin_monthly], axis=1)
+monthly_nwvf_EC_Zeppelin.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data'
+                                + '/MAIA_processed/monthly_nwvf_EC_Zeppelin.csv',
+                                index=True,
+                                header=True)
+
+monthly_nwvf_SO4_Villum = pd.concat([nwvf_SO4_Villum_monthly, SO4_Villum_monthly], axis=1)
+monthly_nwvf_SO4_Villum.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data'
+                               + '/MAIA_processed/monthly_nwvf_SO4_Villum.csv',
+                               index=True,
+                               header=True)
+
+monthly_nwvf_SO4_Zeppelin = pd.concat([nwvf_SO4_Zeppelin_monthly, SO4_Zeppelin_monthly], axis=1)
+monthly_nwvf_SO4_Zeppelin.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data'
+                                 + '/MAIA_processed/monthly_nwvf_SO4_Zeppelin.csv',
+                                 index=True,
+                                 header=True)
+
+# Save monthly sums, aerosols and NWVF in same csv file, non-zero values only
+monthly_nwvf_EC_Villum_nonzero = pd.concat([nwvf_EC_Villum_monthly_nonzero,
+                                            EC_Villum_monthly_nonzero], axis=1)
+monthly_nwvf_EC_Villum_nonzero.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data'
+                                      + '/MAIA_processed/monthly_nwvf_EC_Villum_nonzero.csv',
+                                      index=True,
+                                      header=True)
+
+monthly_nwvf_EC_Zeppelin_nonzero = pd.concat([nwvf_EC_Zeppelin_monthly_nonzero,
+                                              EC_Zeppelin_monthly_nonzero], axis=1)
+monthly_nwvf_EC_Zeppelin_nonzero.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data'
+                                        + '/MAIA_processed/monthly_nwvf_EC_Zeppelin_nonzero.csv',
+                                        index=True,
+                                        header=True)
+
+monthly_nwvf_SO4_Villum_nonzero = pd.concat([nwvf_SO4_Villum_monthly_nonzero,
+                                             SO4_Villum_monthly_nonzero], axis=1)
+monthly_nwvf_SO4_Villum_nonzero.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data'
+                                       + '/MAIA_processed/monthly_nwvf_SO4_Villum_nonzero.csv',
+                                       index=True,
+                                       header=True)
+
+monthly_nwvf_SO4_Zeppelin_nonzero = pd.concat([nwvf_SO4_Zeppelin_monthly_nonzero,
+                                               SO4_Zeppelin_monthly_nonzero], axis=1)
+monthly_nwvf_SO4_Zeppelin_nonzero.to_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/Data'
+                                         + '/MAIA_processed/monthly_nwvf_SO4_Zeppelin_nonzero.csv',
+                                         index=True,
+                                         header=True)
+
+
+df_EC_Villum = df_EC_Villum.reset_index()
+df_SO4_Villum = df_SO4_Villum.reset_index()
+df_EC_Zeppelin = df_EC_Zeppelin.reset_index()
+df_SO4_Zeppelin = df_SO4_Zeppelin.reset_index()
+
+nwvf_EC_Villum = nwvf_EC_Villum.reset_index()
+nwvf_SO4_Villum = nwvf_SO4_Villum.reset_index()
+nwvf_EC_Zeppelin = nwvf_EC_Zeppelin.reset_index()
+nwvf_SO4_Zeppelin = nwvf_SO4_Zeppelin.reset_index()
+
+
+
+
+################
+# PLOT FIGURES #
+################
+
+
+#
+fig, ax = plt.subplots(4,1, figsize=(15,9), sharex=True)
+fig.suptitle('NWVF aerosol monthly sums', fontsize=16)
+
+for i, df_mod, df_obs in zip(range(len(monthly_nwvfs)),
+                             monthly_nwvfs_nonzero, monthly_earosols_nonzero):
+    ax[i].plot(df_mod.index, df_mod['nwvf_time_integral'],
+               linewidth=0.7,
+               color='k',
+               label='NWVF',
+               marker='o',
+               linestyle='-',
+               markersize=2)
+    ax[i].set_title(aerosol_names[i].split('_')[0] + ' ' + aerosol_names[i].split('_')[1])
+    ax[i].set_ylabel('NWVF time integral')
+    ax[i].set_ylim([-2e7, 1.5e7])
+    ax2 = ax[i].twinx()
+    ax2.plot(df_obs.index, df_obs[aerosol_names[i].split('_')[0]],
+             linewidth=0.7,
+             color='r',
+             label=aerosol_names[i].split('_')[0],
+             marker='o',
+             linestyle='-',
+             markersize=2)
+    ax2.set_ylabel(aerosol_names[i].split('_')[0])
+    ax2.yaxis.label.set_color('r')
+    ax2.tick_params(axis='y', colors='r')
+
+    ax[i].legend(loc='upper left')
+    ax2.legend(loc='upper right')
+
+fig.tight_layout()
+fig.savefig('/Users/au728490/Documents/PhD_AU/PhD_AU_material/Figures'
+            + '/MAIA/nwvf_aerosol__matched__monthly_sums.png',
+            dpi=600, bbox_inches='tight')
 
 
 

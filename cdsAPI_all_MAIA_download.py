@@ -1,12 +1,32 @@
+"""
+This script downloads ERA5 reanalysis data using the CDS API for a specified set of variables and years.
+The downloaded data is saved in NetCDF format.
+
+Usage:
+1. Set the desired variables to download in the 'variables' list.
+2. Set the years for which you want to download the data in the 'years_all' list.
+3. Set the path where you want to save the downloaded data in the 'path' variable.
+4. Run the script.
+
+Note: The script uses the 'cdsapi' library to interact with the CDS API. Make sure you have it installed before running the script.
+"""
+
 import cdsapi
 
+# List of variables to download
 variables = ['vertical_integral_of_northward_water_vapour_flux']#'2m_temperature', 'sea_ice_cover', 'vertical_integral_of_eastward_water_vapour_flux', 
 
+# Start year for downloading data
 ups = '1996'
+
+# List of all years
 years_all = [str(i) for i in range(1994, 2023)]
+
+# Years to select for downloading
 years_select = '2022'#[str(i) for i in range(2008,2023)]
 #years_select.append(ups)
 
+# Years grouped by decade
 years1994_2003 = ['1994', '1995', '1996',
  '1997', '1998', '1999',
  '2000', '2001', '2002',
@@ -22,17 +42,20 @@ years2014_2022 = ['2014', '2015', '2016',
     '2020', '2021', '2022',
     ]
 
-
+# Grouped years (NB: the script is messy, since some years got downloaded, but then the script stopped. So, I had to run it again for the remaining years.)
 yearss = [years1994_2003, years2004_2013, years2014_2022]#[[str(i) for i in range(1994, 2004)]]#, [str(i) for i in range(2004, 2014)], [str(i) for i in range(2014, 2024)]]
 
+# Path to save the downloaded data
 path = '/Volumes/1TB-FREECOM/MAIA_data/'
 
+# Loop over variables
 for variable in variables:
     if variable == 'vertical_integral_of_northward_water_vapour_flux':
         years = years_select
     else:
         years = years_all
 
+    # Loop over years
     for year in years:
         print('Downloading ' + variable + ' for year ' + year)
               
@@ -40,6 +63,7 @@ for variable in variables:
        
         c = cdsapi.Client()
 
+        # Retrieve data using CDS API
         c.retrieve(
             'reanalysis-era5-single-levels',
             {

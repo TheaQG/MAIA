@@ -1,4 +1,21 @@
 
+'''
+This script is used to examine and visualize the MAIA time series data.
+The MAIA data has been processed and saved in NetCDF files of 6-hourly means for the years 1994-2022.
+NWVF is already integrated over the longitude [-45E, 45E] at latitude 70N.
+Temperature and sea ice cover are area-weighted means.
+
+It reads the data from NetCDF files, normalizes the data, and plots the time series for three variables: 
+- longitudinal integral of NWVF
+- area-weighted 2 meter temperature mean
+- area-weighted sea ice cover mean.
+
+The script also saves the generated plot as an image file.
+
+Author: Thea Q
+Date: [Current Date]
+'''
+
 import netCDF4 as nc
 import numpy as np
 import pandas as pd
@@ -10,24 +27,36 @@ import os
 import glob
 
 def NormalizeData(data):
+    '''
+    Normalize the input data using min-max normalization.
+
+    Parameters:
+        data (numpy.ndarray): Input data array.
+
+    Returns:
+        numpy.ndarray: Normalized data array.
+    '''
     return (data - np.min(data)) / (np.max(data) - np.min(data))
 
-
+# File paths for the NetCDF files
 fn_nwvf = '/Users/au728490/Documents/PhD_AU/Python_Scripts/Data/MAIA_processed/MAIA_nwvf_integrals_1994-2022__6hr_mean.nc'
 fn_t2m = '/Users/au728490/Documents/PhD_AU/Python_Scripts/Data/MAIA_processed/MAIA_AreaMean_t2m_1994-2022__6hr_mean.nc'
 fn_sic = '/Users/au728490/Documents/PhD_AU/Python_Scripts/Data/MAIA_processed/MAIA_AreaMean_SIC_1994-2022__6hr_mean.nc'
 
-
+# Read the NetCDF files
 ds_nwvf = nc.Dataset(fn_nwvf)
 ds_t2m = nc.Dataset(fn_t2m)
 ds_sic = nc.Dataset(fn_sic)
 
+# Convert time values to timestamps
 hrs_after_1994 = ds_nwvf['time'][:]
 timestamps = pd.to_datetime(hrs_after_1994, unit='h', origin=pd.Timestamp('1994-01-01 02:00:00'))
 
+# Create a figure with subplots
 fig, ax = plt.subplots(3, 1, figsize=(12,8), sharex=True, )
 fig.suptitle('MAIA time series', fontsize=16)
 
+# Plot the time series for each variable
 ax[0].plot(timestamps, ds_nwvf.variables['nwvf_integral'][:], linewidth=0.7, color='k')
 ax[0].set_title('Longitudinal integral of NWVF [-45E, 45E] at latitude 70N ')
 ax[0].set_ylabel('[kg m$^{-1}$ s$^{-1}$]')
@@ -44,34 +73,9 @@ ax[2].set_ylabel('[%]')
 
 fig.tight_layout()
 
+# Save the figure as an image file
 fig.savefig('/Users/au728490/Documents/PhD_AU/Python_Scripts/MAIA_ERA5_Download/MAIA_time_series.png', dpi=300)
+
+# Display the plot
 plt.show()
-
-# print(ds_nwvf['time'][:])
-# ds_nwvf_norm = NormalizeData(ds_nwvf.variables['nwvf_integral'][:])
-# ds_t2m = NormalizeData(ds_t2m.variables['areaMean_t2m'][:])
-# ds_sic = NormalizeData(ds_sic.variables['areaMean_t2m'][:])
-
-# fig, ax = plt.subplots(1,1, figsize=(12,4))
-
-# ax.plot(timestamps, ds_nwvf_norm, linewidth=0.7, color='g', label='NWVF')
-# ax.set_xlabel('Time')
-# ax.set_ylabel('Normalized NWVF', color='g')
-
-# ax2 = ax.twinx()
-# ax2.plot(timestamps, ds_t2m+1.5, linewidth=0.7, color='k', label='T2m')
-# ax2.set_ylabel('Normalized T2m', color='k')
-# ax2.set_ylim([0, 2.5])
-# #ax.plot(ds_sic, linewidth=0.7, color='b', label='SIC')
-# #ax.set_xlim([1994,2023])
-
-# ax.set_title('MAIA time series normalized')
-
-# # Remove labels on y-axis
-# #ax.set_yticklabels([])
-# # Set the x-axis tick labels to beggining of every year
-# #ax.set_xticks(np.arange(0, len(ds_nwvf.variables['nwvf_integral'][:]), 365*4))
-
-# fig.tight_layout()
-# plt.show()
 
