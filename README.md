@@ -25,24 +25,24 @@ The project examines different aspects of the water vapour transport and aerosol
 ### 'Figures\': contains the figures produced in the project
 
 - ** ModResults\ **: contains the figures produced from the model results
-    -
+    - .py
 - ** 'ObsResults\' **: contains the figures produced from the observations
-    -
+    - .py
 - **'MixedResults\'**: contains the figures produced from the mixed model and observation
     -
 
 ### **'Scripts\'**: contains the scripts used in the project for analysis and plotting
 
 - **'Analysis\'**: contains the scripts used for the analysis
-    -
+    - .py
 - **'Examinations\'**: contains the scripts used for the examination of the data and testing of the scripts
-    -
+    - .py
 - **'Plotting\'**: contains the scripts used for the plotting
-    -
+    - .py
 - **'Preprocessing\'**: contains the scripts used for loading and preprocessing of the data
-    - 
+    - .py
 - **'Results\'**: contains the results produced in the project
-    - 
+    - .py
 
 
 - **'aerosol_meas.py'**:
