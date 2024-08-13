@@ -5,7 +5,7 @@ import netCDF4 as nc
 import xarray as xr
 
 # Import txt file (with header)
-data = pd.read_csv('/Users/au728490/Documents/PhD_AU/Python_Scripts/MAIA_ERA5_Download/TS_AerosolBurden_ArcticSlice.txt')
+data = pd.read_csv('TS_AerosolBurden_ArcticSlice.txt')
 # Save data in pd series
 EC = data['BC']
 t = data['date']
