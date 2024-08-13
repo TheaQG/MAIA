@@ -23,6 +23,7 @@ The project examines different aspects of the water vapour transport and aerosol
 - *TS_AerosolBurden_ArcticSlice_small.txt*: Contains timeseries of modelled aerosol concentrations (Black Carbon, Dust, Organic Carbon, Sulphate, SS and PM25) in the section 45W-45E and 70N-75N. 
 
 ### **'Figures\'**: contains the figures produced in the project
+
 - **'ModResults\'**: contains the figures produced from the model results
     -
 - **'ObsResults\'**: contains the figures produced from the observations
@@ -31,6 +32,7 @@ The project examines different aspects of the water vapour transport and aerosol
     -
 
 ### **'Scripts\'**: contains the scripts used in the project for analysis and plotting
+
 - **'Analysis\'**: contains the scripts used for the analysis
     -
 - **'Examinations\'**: contains the scripts used for the examination of the data and testing of the scripts
