@@ -1,3 +1,9 @@
+
+# QUESTIONS:
+- SHOULD WE ACTUALLY ALSO COMPUTE THE AEROSOLS FOR A SMALLER AREA? WV CAN ACCESS FROM A LARGER AREA THAN AEROSOLS... 
+- Consider statistical measure: Do we need something more sophisticated than just the correlation coefficient?
+
+
 # MAIA
 
 The MAIA project is focused on examining the correlations between water vapour transport into the arctic and aerosol concentrations in the region. The project is carried out by a team of researchers (U. Imre, P. L. Langen, and T. Quistgaard) at the Department of Environmental Science, Aarhus University.
@@ -6,19 +12,40 @@ The project is funded by ... and is part of theResearch Project ...
 
 The project examines different aspects of the water vapour transport and aerosol concentrations in the arctic through ground-based measurements, reanalysis data, and model simulations.
 
+#### Objectives
+The objectives of the project are to:
+- Examine the correlations between the water vapour transport into the arctic and aerosol concentrations in the region.
+- Examine the aerosol concentrations in the arctic in terms of climatology, events, and monthly averages.
+- Examine the water vapour transport into the arctic in terms of climatology, events, and monthly averages.
+
+#### Geographical region of interest
+The geographical region of interest is the arctic, more specifically set to the region 45W-45E and 70N-90N (see Figure below).
+The project focuses specifically on the (Northern) Water Vapour Flux (NWVF) into the arctic along the 70N latitude line. It is assumed that the NWVF across this line is a good proxy for the transport of water vapour into the arctic.  
+The aerosol concentrations are examined in the region 45W-45E and 70N-90N, thus not only across the 70N latitude line but in the whole region of interest. 
 
 <img src="Figures/MAIA_NWVF_single_timestep.png" alt="alt text" width="500">
 
-<!---
-![alt text](Figures/MAIA_NWVF_single_timestep.png)
--->
+#### Aerosol concentrations
+The aerosol concentrations are examined through ground-based measurements, reanalysis data, and model simulations. The model simulations are carried out with the ... model nudged with either NCEP or MERRA reanalysis data. The aerosol concentrations are examined in terms of Black Carbon, Dust, Organic Carbon, Sulphate, Sea Salt (SS), and Particulate Matter with a diameter less than 2.5 micrometers (PM2.5). The aerosol concentrations are examined in terms of climatology, events, and monthly averages. The aerosol concentrations are examined in relation to the NWVF to examine the correlations between the two.
 
+#### Water vapour transport
+The water vapour transport is examined through reanalysis data and model simulations. The model simulations are carried out with the ... model nudged with either NCEP or MERRA reanalysis data. The reanalysis data used is ERA5. The water vapour transport is examined in terms of the (Northern) Water Vapour Flux (NWVF) into the arctic along the 70N latitude line.
+The water vapour transport is examined in terms of climatology, events, and monthly averages. 
 
-### OBSERVATIONS
+### "OBSERVATIONS"
+- Stations-based aerosols (Villum and Zeppelin stations) VS. ERA5 NWVF
+- MERRA Nudged aerosols VS. ERA5 NWVF (full arctic slice)
+- MERRA Nudged aerosols VS. MERRA NWVF (smaller arctic slice, 70N-75N)
+    - Daily, 3-day rolling mean, and 7-day rolling mean
+    - 7-day rolling mean with shift: NWVF [-7;0] days and aerosols [-4;+3] days.
+
 
 ### MODELS
 
-### MIXED
+
+### MIXED (OBSERVATIONS AND MODELS)
+- NCEP Nudged aerosols VS. ERA5 NWVF
+    - To see how strongly the nudging will make the the model NWVF look like the reanalysis NWVF.
 
 
 
