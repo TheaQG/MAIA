@@ -7,9 +7,8 @@ The project is funded by ... and is part of theResearch Project ...
 The project examines different aspects of the water vapour transport and aerosol concentrations in the arctic through ground-based measurements, reanalysis data, and model simulations.
 
 
-```markdown
 <img src="Figures/MAIA_NWVF_single_timestep.png" alt="alt text" width="300">
-```
+
 <!---
 ![alt text](Figures/MAIA_NWVF_single_timestep.png)
 -->
