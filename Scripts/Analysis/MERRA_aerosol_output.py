@@ -8,25 +8,25 @@ import matplotlib.pyplot as plt
 import netCDF4 as nc
 import xarray as xr
 
-PATH_DATA = '../../Data/'
-PATH_FIGS = '../../Figures/'
 
-SAVE_FIGS = True
+SAVE_FIGS = False
 
-# Import txt file (with header)
-data = pd.read_csv(PATH_DATA + 'ModelData/TS_AerosolBurden_ArcticSlice_small.txt')
 
 
 aerosol_str = 'TotalMass'
-region_str = 'small'
-n_window = 7
-shift = int(n_window/2) 
+region_str = '_small'
+n_window = 14
+shift = 100#int(n_window/2) 
+
+PATH_DATA = '../../Data/'
+PATH_FIGS = '../../Figures/AverageAndShifts/' + aerosol_str + '/'
+
+# Import txt file (with header)
+data = pd.read_csv(PATH_DATA + 'ModelData/TS_AerosolBurden_ArcticSlice' + region_str + '.txt')
 
 
 
 # Save data in pd series (most important aerosols: ['BC', 'Dust', 'SO4', 'TotalMass'])
-
-
 t = data['date']
 
 # Add date (from data) to pd.series
@@ -107,7 +107,7 @@ fig.tight_layout()
 
 # Save the figure as an image file
 if SAVE_FIGS:
-    plt.savefig(PATH_FIGS + aerosol_str + '_NWVF_raw_comparison_' + region_str + '.png')
+    plt.savefig(PATH_FIGS + aerosol_str + '_NWVF_raw_comparison' + region_str + '.png')
 
 
 
@@ -177,7 +177,7 @@ fig.tight_layout()
 
 # Save the figure as an image file
 if SAVE_FIGS:
-    plt.savefig(PATH_FIGS + aerosol_str + '_NWVF_' + str(n_window) + '_day_average_' + region_str + '.png')
+    plt.savefig(PATH_FIGS + aerosol_str + '_NWVF_' + str(n_window) + '_day_average' + region_str + '.png')
 
 
 
@@ -211,7 +211,7 @@ axs[0].set_ylabel(f'{aerosol_str} [kg/m2]')
 axs[0].grid()
 axs[0].legend()
 
-axs[1].plot(daily_NWVF_df_weekly.index, daily_NWVF_df_weekly['nwvf_integral'], label=f'NWVF {n_window}-day average', color='teal', alpha=1, lw=0.8)
+axs[1].plot(daily_NWVF_df_weekly.index, daily_NWVF_df_weekly['nwvf_integral'], label=f'NWVF {n_window}-day average', color='teal', alpha=0.8, lw=0.8)
 axs[1].plot(daily_NWVF_df['time'], daily_NWVF_df['NWVF_WA_shifted'], label=f'NWVF moving {n_window}-day average (shifted by {shift} days)', color='orangered', lw=1)
 axs[1].set_title(f'NWVF with {n_window}-day moving average (shifted by {shift} days)')
 axs[1].set_ylabel('NWVF [kg/m2]')
@@ -225,6 +225,9 @@ axs[1].legend()
 fig.tight_layout()
 
 
+# Save the figure as an image file
+if SAVE_FIGS:
+    plt.savefig(PATH_FIGS + aerosol_str + '_NWVF_' + str(n_window) + '_day_average_' + str(shift) + '_days_shift' + region_str + '.png')
 
 
 
