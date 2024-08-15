@@ -68,13 +68,24 @@ The water vapour transport is examined in terms of climatology, events, and mont
 ### **'Scripts\'**: contains the scripts used in the project for analysis and plotting
 
 - **'Analysis\'**: contains the scripts used for the analysis
-    - .py
+    - **'aerosol_meas.py'**: Processes the aerosol measurements from the Villum and Zeppelin stations. It matches the observational data (Elemental Carbon EC and Sulphate SO4) with model NWVF data by date (NWVF is smooth but aerosol timeseries has gaps and non-equidistanced data points). The script also computes weekly and monthly averages of the aerosol measurements (after restructuring NWVF to have same amount of datapoints as aerosol measurements).
+    - **'climatology.py'**: Analyzes climatological - monthly, weekly, daily averages and std to create the climatological year. Does so for NWVF (filtered) and corresponding aerosols and computes the correlation coefficient. Also computes climatology for unfiltered NWVF.
+    - **'event_analysis_class.py'**: Contains the class EventAnalysis which is used for detecting events in the data. The analysis examines whether significant events are present in both the NWVF and aerosol data. Running it as main will produce a plot of events (right now) of MERRA EC vs NWVF.
+    - **'event_analysis.py'**: Right now, produces event analysis for station (Villum and Zeppelin) measurements (SO4 and EC) and NWVF.
+    
 - **'Examinations\'**: contains the scripts used for the examination of the data and testing of the scripts
-    - .py
+    - **'ERA5_data_examination.py'**: Examines the ERA5 data for the period 1979-2019. The script loads the ERA5 data and examines the variables in the data, NWVF, 2m Surface Temp and Sea Ice Cover. The script is used for examining the data and testing the loading functions.
+    - **'MERRA_NCEP_ERA5__NWVF_comparison.py'**: Compares the NWVF from the MERRA, NCEP, and ERA5 reanalysis data. The script loads the NWVF data from the reanalysis data and compares the NWVF from the different data sets.
+
 - **'Plotting\'**: contains the scripts used for the plotting
-    - .py
+    - **'single_timestep.py'**: Plots a single timestep of the NWVF and aerosol concentrations. The script is used for examining the data and testing the plotting functions.
+
 - **'Preprocessing\'**: contains the scripts used for loading and preprocessing of the data
-    - .py
+    - **'cdsAPI_all_MAIA_download.py'**: Downloads the data from the Copernicus Climate Data Store (CDS) using the cdsapi package. The script downloads the ERA5 reanalysis data for the period 1979-2019. The data is downloaded in the form of NetCDF files and is stored in the 'Data/CDS_ERA5/' folder.
+    - **'comp_6hr_mean.sh'**: Takes all .nc files in defined folder and computes the 6-hourly mean of the variables in the files.
+    - **'MAIA__NWVF_DataProcessing.py'**: Processes the NWVF data from the model simulations and reanalysis data. The script computes the NWVF across the 70N latitude line and saves the data in a .csv file. Also contains a plotting function for plotting a single timestep of the NWVF.
+    - **'MAIA_Temp_SeaIceCover_DataProcessing.py'**: NOT IN USE. Processes the temperature and sea ice cover data from the model simulations and reanalysis data. The script computes the temperature and sea ice cover in the region of interest and saves the data in a .csv file. Also contains a plotting function for plotting a single timestep of the temperature and sea ice cover.
+
 - **'Results\'**: contains the results produced in the project
     - .py
 
@@ -82,16 +93,6 @@ The water vapour transport is examined in terms of climatology, events, and mont
 
 
 
-- **'aerosol_meas.py'**:
-- **'cdsAPI_all_MAIA_download.py'**:
-- **'climatology.py'**:
-- **'comp_6hr_mean.sh'**:
-- **'event_analysis_class.py'**:
-- **'event_analysis.py'**:
-- **'MAIA__NWVF_DataProcessing.py'**:
-- **'MAIA_Temp_SeaIceCover_DataProcessing.py'**:
-- **'MAIA_examination.py'**:
-- **'MERRA_aerosol_event_analysis.py'**:
 - **'MERRA_aerosol_output.py'**:
 - **'model_aerosol_climatology.py'**:
 - **'model_aerosol_event_analysis.py'**:

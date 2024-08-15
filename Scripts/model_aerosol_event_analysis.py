@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import xarray as xr
 
-from event_analysis_class import EventAnalysis
+from Scripts.Analysis.event_analysis_class import EventAnalysis
 
 if __name__ == '__main__':
     # Create dataframe with different seasons (based on model_aerosol_climatology.py)
