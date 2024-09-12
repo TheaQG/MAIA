@@ -9,14 +9,14 @@ import netCDF4 as nc
 import xarray as xr
 
 
-SAVE_FIGS = False
+SAVE_FIGS = True
 
 
 
 aerosol_str = 'TotalMass'
 region_str = '_small'
-n_window = 14
-shift = 100#int(n_window/2) 
+n_window = 7
+shift = 50 #int(n_window/2) 
 
 PATH_DATA = '../../Data/'
 PATH_FIGS = '../../Figures/AverageAndShifts/' + aerosol_str + '/'
