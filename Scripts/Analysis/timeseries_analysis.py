@@ -1,10 +1,16 @@
+'''
+
+'''
+
 import os
 
 import pandas as pd
 import numpy as np
-import netCDF4 as nc
 import xarray as xr
 import matplotlib.pyplot as plt
+
+from scipy.stats import ks_2samp
+from statsmodels.distributions.empirical_distribution import ECDF
 
 # Save figures?
 SAVE_FIGS = True
@@ -35,12 +41,18 @@ class Climatology:
         self.climatology_smooth = self.calculate_smoothed_climatology(self.n_days)
 
     def calculate_climatology(self):
+        '''
+        
+        '''
         # Calculate the daily mean and std of both NWVF and aerosol (1. jan, 2. jan,..., 31. dec)
         self.df['day'] = self.df[self.date_column].dt.dayofyear
         climatology = self.df.groupby('day').agg(['mean', 'std'])
         return climatology
 
     def extend_climatology(self):
+        '''
+        
+        '''
         # Extend the climatology to include February 29
         # Fill February 29 with average of Feb 28 and Mar 1 if missing
         climatology_template = pd.DataFrame(index=pd.date_range('2000-01-01', '2000-12-31'))
@@ -53,6 +65,9 @@ class Climatology:
         return climatology_full
 
     def calculate_smoothed_climatology(self, n_days):
+        '''
+        
+        '''
         # Make a (circular) smoothed version of the climatology and add column with day of year in format 'MM-DD' and account for leap years
         # Define number of days to pad the climatology with at the beginning and end of the year
         pad_length = n_days // 2
@@ -65,6 +80,9 @@ class Climatology:
         return climatology_smooth
 
     def calculate_anomalies(self, df):
+        '''
+        
+        '''
         anomalies = pd.DataFrame()
         for year in df[self.date_column].dt.year.unique():
             # Extract data for the specific year
@@ -119,7 +137,7 @@ class EventAnalysis:
         self.nwvf_name = nwvf_name
         self.n_sigmas = n_sigmas
         self.aerosol_stats, self.nwvf_stats = self.calculate_statistical_params()
-        import matplotlib.pyplot as plt
+        
     
     def calculate_statistical_params(self):
         '''
@@ -447,12 +465,13 @@ if SAVE_FIGS:
 # EVENT ANALYSIS #
 ##################
 
+sigma_ns = 1
 # Loop through all aerosol anomaly dataframes and perform event analysis
 for i, aerosol_anomaly_df in enumerate(aerosol_anomaly_dfs):
     # Get the aerosol name
     aerosol_name = aerosol_types[i]
     # Create an EventAnalysis object
-    event_analysis = EventAnalysis(aerosol_anomaly_df, 'anomaly', NWVF_anomalies, 'anomaly', n_sigmas=2)
+    event_analysis = EventAnalysis(aerosol_anomaly_df, 'anomaly', NWVF_anomalies, 'anomaly', n_sigmas=sigma_ns)
     # Plot the data
     fig, (ax1, ax2) = event_analysis.plot_all_data(bins_nwvf=32, bins_aerosol=32, show_figs=False, save_figs=False, save_path=None, plot_events_pos=True,
                         plot_events_neg=True)
@@ -465,61 +484,53 @@ for i, aerosol_anomaly_df in enumerate(aerosol_anomaly_dfs):
     if SAVE_FIGS:
         fig.savefig(PATH_AEROSOL + 'AnomalyTimeseries_' + aerosol_name + region_str + '.png', dpi=600)
 
-    # Mask the data based on the statistical parameters
+    # Mask the data based on the statistical parameters (e.g. 1 sigma)
     masked_nwvf_data_pos, masked_nwvf_data_neg, masked_aerosol_data_pos, masked_aerosol_data_neg = event_analysis.mask_data_by_stats()
     # Plot histograms of masked data
     fig, ax = plt.subplots(3, 1, figsize=(10, 8))
-    fig.suptitle(f'Event analysis, {aerosol_name}')
+    fig.suptitle(f'Event analysis of anomalies, {aerosol_name}')
 
+    # Get the data from the histograms (values and bins) for CDF calculation
     ax[0].hist(NWVF_anomalies['anomaly'],
-                    bins=32,
-                    alpha=0.9,
-                    label=f'All data',
-                    ec='darkblue',
-                    fc='lightblue')
+                bins=32,
+                alpha=0.9,
+                label='All data',
+                ec='darkblue',
+                fc='lightblue')
+    
     ax[0].hist(masked_nwvf_data_pos,
-            bins=9,
-            alpha=0.9,
-            label=F'+{2} sigma, {len(masked_nwvf_data_pos)} events',
-            ec='darkgreen',
-            fc='lightgreen')
-    ax[0].hist(masked_nwvf_data_neg,
-            bins=8,
-            alpha=0.9,
-            label=f'-{2} sigma, {len(masked_nwvf_data_neg)} events',
-            ec='darkred',
-            fc='lightcoral')
+                bins=9,
+                alpha=0.9,
+                label=F'+{sigma_ns} sigma, {len(masked_nwvf_data_pos)} events',
+                ec='darkgreen',
+                fc='lightgreen')
+
     ax[0].set_title('NWVF')
     ax[0].legend()
-    ax[1].hist(aerosol_anomaly_df['anomaly'],
-            bins=32,
-            alpha=0.9,
-            label=f'All data',
-            ec='darkblue',
-            fc='lightblue'
-            )
-    ax[1].hist(masked_aerosol_data_pos,
-        bins=10,
-        alpha=0.9,
-        label=F'+{2} sigma, {len(masked_aerosol_data_pos)} events',
-        ec='darkgreen',
-        fc='lightgreen'
-        )
-    ax[1].hist(masked_aerosol_data_neg,
-        bins=10,
-        alpha=0.9,
-        label=f'-{2} sigma, {len(masked_aerosol_data_neg)} events',
-        ec='darkred',
-        fc='lightcoral'
-        )
-    ax[1].set_title('Aerosol')
 
+
+    ax[1].hist(aerosol_anomaly_df['anomaly'],
+                bins=32,
+                alpha=0.9,
+                label='All data',
+                ec='darkblue',
+                fc='lightblue'
+                )
+    
+    ax[1].hist(masked_aerosol_data_pos,
+                bins=10,
+                alpha=0.9,
+                label=F'+{sigma_ns} sigma, {len(masked_aerosol_data_pos)} events',
+                ec='darkgreen',
+                fc='lightgreen'
+                )
+    ax[1].set_title('Aerosol')
 
 
     ax[2].hist(aerosol_anomaly_df['anomaly'],
                 bins=32,
                 alpha=0.9,
-                label=f'All data',
+                label='All data',
                 ec='darkblue',
                 fc='lightblue',
                 log=True
@@ -527,30 +538,61 @@ for i, aerosol_anomaly_df in enumerate(aerosol_anomaly_dfs):
     ax[2].hist(masked_aerosol_data_pos,
             bins=17,
             alpha=0.9,
-            label=F'+{2} sigma, {len(masked_aerosol_data_pos)} events',
+            label=F'+{sigma_ns} sigma, {len(masked_aerosol_data_pos)} events',
             ec='darkgreen',
             fc='lightgreen',
             log=True
             )
-    ax[2].hist(masked_aerosol_data_neg,
-            bins=7,
-            alpha=0.9,
-            label=f'-{2} sigma, {len(masked_aerosol_data_neg)} events',
-            ec='darkred',
-            fc='lightcoral',
-            log=True
-            )
+
     ax[2].set_title('Aerosol, log-scale')
     ax[2].legend()
 
     fig.tight_layout()
 
-
     # save figures
     if SAVE_FIGS:
         fig.savefig(PATH_AEROSOL + '/' + f'EventAnalysis_{aerosol_name}' + region_str + '.png', dpi=600)
 
+
+    # Use np.sort to get the CDF values 
+    x_nwvf = np.sort(NWVF_anomalies['anomaly'])
+    f_nwvf = np.arange(len(x_nwvf)) / float(len(x_nwvf))
+    x_aerosol = np.sort(aerosol_anomaly_df['anomaly'])
+    f_aerosol = np.arange(len(x_aerosol)) / float(len(x_aerosol))
+    x_masked_nwvf = np.sort(masked_nwvf_data_pos)
+    f_masked_nwvf = np.arange(len(x_masked_nwvf)) / float(len(x_masked_nwvf))
+    x_masked_aerosol = np.sort(masked_aerosol_data_pos)
+    f_masked_aerosol = np.arange(len(x_masked_aerosol)) / float(len(x_masked_aerosol))
+
+
+    # Make KS-test on aerosol vs. masked aerosol
+    ks_aerosol, p_aerosol = ks_2samp(aerosol_anomaly_df['anomaly'], masked_aerosol_data_pos)
+    print(f'KS-test aerosol vs. masked aerosol, {aerosol_name}: KS={ks_aerosol:.4f}, p={p_aerosol:.4f}')
+
+
+    # Plot CDFs
+    fig, ax = plt.subplots(2, 1, figsize=(10, 8))
+    fig.suptitle(f'CDF of anomalies, {aerosol_name}, KS-test: KS={ks_aerosol:.4f}, p={p_aerosol:.4f}')
+
+    ax[0].plot(x_nwvf, f_nwvf, label='NWVF', color='teal')
+    # ax[0].plot(x_masked_nwvf, f_masked_nwvf, label='NWVF masked', color='green')
+    ax[0].set_title('NWVF')
+    ax[0].legend()
+
+    ax[1].plot(x_aerosol, f_aerosol, label='Aerosol', color='teal')
+    ax[1].plot(x_masked_aerosol, f_masked_aerosol, label='Aerosol masked', color='green')
+    ax[1].set_title('Aerosol')
+    ax[1].legend()
+
+    fig.tight_layout()
+    
+
+
+
+
+
     plt.show()
+    break
 
 
 

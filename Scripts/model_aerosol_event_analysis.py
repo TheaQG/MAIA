@@ -75,7 +75,7 @@ if __name__ == '__main__':
     
 
 
-    n_sigmas = 2
+    n_sigmas = 1
 
     # Loop through the different aerosols and perform the event analysis
     
@@ -99,7 +99,7 @@ if __name__ == '__main__':
                                           bins_aerosol,
                                           'ArcticSlice_small',
                                           show_figs=True,
-                                          save_figs=True,
+                                          save_figs=False,
                                           save_path='/Users/au728490/Documents/PhD_AU/Python_Scripts/MAIA_ERA5_Download/Figures/MERRA/ArcticSlice_small/',
                                           plot_events_neg=False
                                           )
