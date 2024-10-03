@@ -1,5 +1,5 @@
 '''
-
+    Script to analyze aerosol and NWVF data from the MAIA project.
 '''
 
 import os
@@ -10,10 +10,9 @@ import xarray as xr
 import matplotlib.pyplot as plt
 
 from scipy.stats import ks_2samp
-from statsmodels.distributions.empirical_distribution import ECDF
 
 # Save figures?
-SAVE_FIGS = True
+SAVE_FIGS = False
 
 
 class Climatology:
@@ -269,330 +268,335 @@ class EventAnalysis:
 
 
 
+if __name__ == '__main__':
+    ##################################
+    # LOADING AND PREPROCESSING DATA #
+    ##################################
 
-##################################
-# LOADING AND PREPROCESSING DATA #
-##################################
+    # Choose aerosol
+    aerosol_types = ['TotalMass', 'BC', 'Dust', 'SO4'] #['lwp', 'iwp', 'pvq']
+    #aerosol_str = aerosol_types[0]
 
-# Choose aerosol
-aerosol_types = ['TotalMass', 'BC', 'Dust', 'SO4']
-#aerosol_str = aerosol_types[0]
+    # Choose region (pizza slice, '', or band, '_small')
+    region_str = '_small' #''#
 
-# Choose region (pizza slice, '', or band, '_small')
-region_str = '_small'
+    # Define start and end date
+    start_date_str = '1997-01-01'
+    end_date_str = '2021-12-31'
 
-# Define start and end date
-start_date_str = '1997-01-01'
-end_date_str = '2021-12-31'
-
-# Define paths to data and figures
-PATH_DATA = '../../Data/'
-PATH_FIGS = '../../Figures/AnomalyTimeseriesAnalysis/'
-# Create folder if it does not exist
-if not os.path.exists(PATH_FIGS):
-    os.makedirs(PATH_FIGS)
-
-
-
-# AEROSOL DATA
-
-# Import aerosol txt file (with header)
-aerosol_data = pd.read_csv(PATH_DATA + 'ModelData/TS_AerosolBurden_ArcticSlice' + region_str + '.txt')
-
-# Save time data in datetime format in dataframe and crop data to only after 1997 and before 2022-07-01
-t = pd.DataFrame(pd.to_datetime(aerosol_data['date']))
-t = t[t['date'] >= start_date_str]
-t = t[t['date'] <= end_date_str]
-
-# Create new column 'TotalMass' which is the sum of all columns except 'date'
-aerosol_data['TotalMass'] = aerosol_data['BC'] + aerosol_data['Dust'] + aerosol_data['SO4'] + aerosol_data['OC'] + aerosol_data['SS'] + aerosol_data['PM25']
-
-# Create a df with only aerosols in aerosol_types and date column
-aerosol_data = aerosol_data[['date'] + aerosol_types]
-
-
-# Filter data to only after 1997 and before 2022-07-01
-aerosol_data = aerosol_data[aerosol_data['date'] >= start_date_str] 
-aerosol_data = aerosol_data[aerosol_data['date'] <= end_date_str]
-
-
-# NWVF DATA
-
-# Read ERA5 NWVF (6 hourly) data from .nc file
-NWVF_ERA5 = xr.open_dataset(PATH_DATA + 'Processed_MAIA/MAIA_nwvf_integrals_1994-2022__6hr_mean.nc')
-
-# Resample NWVF data to daily data and save in dataframe
-daily_NWVF = NWVF_ERA5['nwvf_integral'].resample(time='1D').sum()
-daily_NWVF_df = daily_NWVF.to_dataframe()
-
-# Reset index of daily_NWVF_df
-daily_NWVF_df.reset_index(inplace=True)
-
-# Filter data to only after 1997 and before 2022-07-01
-daily_NWVF_df = daily_NWVF_df[daily_NWVF_df['time'] >= start_date_str]
-daily_NWVF_df = daily_NWVF_df[daily_NWVF_df['time'] <= end_date_str]
+    # Define paths to data and figures
+    PATH_DATA = '../../Data/'
+    PATH_FIGS = '../../Figures/AnomalyTimeseriesAnalysis/'
+    # Create folder if it does not exist
+    if not os.path.exists(PATH_FIGS):
+        os.makedirs(PATH_FIGS)
 
 
 
+    # AEROSOL DATA
+
+    # Import aerosol txt file (with header)
+    aerosol_data = pd.read_csv(PATH_DATA + 'ModelData/TS_AerosolBurden_ArcticSlice' + region_str + '.txt') #AerosolBurden
+    cloud_data = pd.read_csv(PATH_DATA + 'ModelData/TS_Clouds_ArcticSlice.txt')
+    print(cloud_data.head())
+
+
+    # Save time data in datetime format in dataframe and crop data to only after 1997 and before 2022-07-01
+    t = pd.DataFrame(pd.to_datetime(aerosol_data['date']))
+    t = t[t['date'] >= start_date_str]
+    t = t[t['date'] <= end_date_str]
+
+    # Create new column 'TotalMass' which is the sum of all columns except 'date'
+    aerosol_data['TotalMass'] = aerosol_data['BC'] + aerosol_data['Dust'] + aerosol_data['SO4'] + aerosol_data['OC'] + aerosol_data['SS'] + aerosol_data['PM25']
+
+    # Create a df with only aerosols in aerosol_types and date column
+    aerosol_data = aerosol_data[['date'] + aerosol_types]
+
+
+    # Filter data to only after 1997 and before 2022-07-01
+    aerosol_data = aerosol_data[aerosol_data['date'] >= start_date_str] 
+    aerosol_data = aerosol_data[aerosol_data['date'] <= end_date_str]
+
+    cloud_data = cloud_data[cloud_data['date'] >= start_date_str]
+    cloud_data = cloud_data[cloud_data['date'] <= end_date_str]
+
+    # NWVF DATA
+
+    # Read ERA5 NWVF (6 hourly) data from .nc file
+    NWVF_ERA5 = xr.open_dataset(PATH_DATA + 'Processed_MAIA/MAIA_nwvf_integrals_1994-2022__6hr_mean.nc')
+
+    # Resample NWVF data to daily data and save in dataframe
+    daily_NWVF = NWVF_ERA5['nwvf_integral'].resample(time='1D').sum()
+    daily_NWVF_df = daily_NWVF.to_dataframe()
+
+    # Reset index of daily_NWVF_df
+    daily_NWVF_df.reset_index(inplace=True)
+
+    # Filter data to only after 1997 and before 2022-07-01
+    daily_NWVF_df = daily_NWVF_df[daily_NWVF_df['time'] >= start_date_str]
+    daily_NWVF_df = daily_NWVF_df[daily_NWVF_df['time'] <= end_date_str]
 
 
 
 
 
 
-###############################
-# CLIMATOLOGIES AND ANOMALIES #
-###############################
-
-n_days_clim = 30
-# Loop through aerosols in df and calculate climatologies and anomalies
-
-
-# Figure to plot all smoothed aerosol climatologies (one subplot) and smoothed NWVF climatology (one subplot)
-fig_clim, axs_clim = plt.subplots(2, 1, figsize=(18, 6), sharex=True)
-axs_clim[0].set_title('Smoothed climatology, aerosols')
-# Set x-axis to [first_day, last_day]
-axs_clim[0].set_xlim([1, 366])
-# Add grid and axis labels
-axs_clim[0].grid()
-axs_clim[0].set_ylabel('aerosol [kg/m2]')
-axs_clim[0].set_xlabel('Time')
-axs_clim[1].set_title('Smoothed climatology, NWVF')
-axs_clim[1].grid()
-axs_clim[1].set_ylabel('NWVF [kg/m2]')
-axs_clim[1].set_xlabel('Time')
 
 
 
-# Figure to plot all aerosols (one subplot) and NWVF (one subplot) anomalies
-fig_anom, axs_anom = plt.subplots(2, 1, figsize=(18, 6), sharex=True)
-axs_anom[0].set_title('Anomalies, aerosols')
-# Set x-axis to [first_day, last_day]
-axs_anom[0].set_xlim([t['date'].iloc[0], t['date'].iloc[-1]])
-# Add grid and axis labels
-axs_anom[0].grid()
-axs_anom[0].set_ylabel('aerosol anomaly [kg/m2]')
-axs_anom[0].set_xlabel('Time')
-axs_anom[1].set_title('Anomalies, NWVF')
-axs_anom[1].grid()
-axs_anom[1].set_ylabel('NWVF anomaly [kg/m2]')
-axs_anom[1].set_xlabel('Time')
+    ###############################
+    # CLIMATOLOGIES AND ANOMALIES #
+    ###############################
+
+    n_days_clim = 30
+    # Loop through aerosols in df and calculate climatologies and anomalies
 
 
-# Figure to plot histograms of anomalies
-fig_hist, axs_hist = plt.subplots(2, 1, figsize=(10, 8))
-axs_hist[0].set_title('Anomalies, aerosols')
-axs_hist[0].set_ylabel('Frequency')
-axs_hist[0].set_xlim([-0.00006, 0.00006]) # Make x-axis symmetric
-axs_hist[0].grid()
-axs_hist[1].set_title('Anomalies, NWVF')
-axs_hist[1].set_ylabel('Frequency')
-axs_hist[1].set_xlabel('Anomaly from climatology')
-axs_hist[1].set_xlim([-1.7e6, 1.7e6]) # Make x-axis symmetric
-axs_hist[1].grid()
+    # Figure to plot all smoothed aerosol climatologies (one subplot) and smoothed NWVF climatology (one subplot)
+    fig_clim, axs_clim = plt.subplots(2, 1, figsize=(18, 6), sharex=True)
+    axs_clim[0].set_title('Smoothed climatology, aerosols')
+    # Set x-axis to [first_day, last_day]
+    axs_clim[0].set_xlim([1, 366])
+    # Add grid and axis labels
+    axs_clim[0].grid()
+    axs_clim[0].set_ylabel('aerosol [kg/m2]')
+    axs_clim[0].set_xlabel('Time')
+    axs_clim[1].set_title('Smoothed climatology, NWVF')
+    axs_clim[1].grid()
+    axs_clim[1].set_ylabel('NWVF [kg/m2]')
+    axs_clim[1].set_xlabel('Time')
 
-# Define colors for plotting
-colors = ['teal', 'orange', 'green', 'red', 'purple', 'brown', 'pink', 'gray', 'olive', 'cyan']
 
-# Empty list to store aerosol dataframes
-aerosol_anomaly_dfs = []
-aerosol_climatology_smooth_dfs = []
 
-for aerosol_str in aerosol_types:
-    # Get color for plotting
-    color = colors.pop(0)
-    
-    # Get specified aerosol data
-    aerosol = aerosol_data[aerosol_str]
+    # Figure to plot all aerosols (one subplot) and NWVF (one subplot) anomalies
+    fig_anom, axs_anom = plt.subplots(2, 1, figsize=(18, 6), sharex=True)
+    axs_anom[0].set_title('Anomalies, aerosols')
+    # Set x-axis to [first_day, last_day]
+    axs_anom[0].set_xlim([t['date'].iloc[0], t['date'].iloc[-1]])
+    # Add grid and axis labels
+    axs_anom[0].grid()
+    axs_anom[0].set_ylabel('aerosol anomaly [kg/m2]')
+    axs_anom[0].set_xlabel('Time')
+    axs_anom[1].set_title('Anomalies, NWVF')
+    axs_anom[1].grid()
+    axs_anom[1].set_ylabel('NWVF anomaly [kg/m2]')
+    axs_anom[1].set_xlabel('Time')
 
-    # Merge aerosol and t into one dataframe
-    aerosol_df = pd.concat([t, aerosol], axis=1)
-    
-    # Create climatology object
-    climatology = Climatology(aerosol_df, aerosol_str, 'date', n_days=n_days_clim)
 
-    # Compute smoothed climatology
-    climatology_smooth = climatology.climatology_smooth
-    aerosol_climatology_smooth_dfs.append(climatology_smooth)
-    # Plot smoothed climatology
-    axs_clim[0].plot(climatology_smooth.index, climatology_smooth[aerosol_str, 'mean'], label=aerosol_str, lw=0.8, color=color)
-    
+    # Figure to plot histograms of anomalies
+    fig_hist, axs_hist = plt.subplots(2, 1, figsize=(10, 8))
+    axs_hist[0].set_title('Anomalies, aerosols')
+    axs_hist[0].set_ylabel('Frequency')
+    axs_hist[0].set_xlim([-0.00006, 0.00006]) # Make x-axis symmetric
+    axs_hist[0].grid()
+    axs_hist[1].set_title('Anomalies, NWVF')
+    axs_hist[1].set_ylabel('Frequency')
+    axs_hist[1].set_xlabel('Anomaly from climatology')
+    axs_hist[1].set_xlim([-1.7e6, 1.7e6]) # Make x-axis symmetric
+    axs_hist[1].grid()
 
-    # Calculate anomalies for both aerosol and NWVF
-    aerosol_anomalies = climatology.calculate_anomalies(aerosol_df)
-    aerosol_anomaly_dfs.append(aerosol_anomalies)
-    # Plot anomalies
-    axs_anom[0].plot(aerosol_anomalies['date'], aerosol_anomalies['anomaly'], label=aerosol_str, lw=0.8, color=color)
+    # Define colors for plotting
+    colors = ['teal', 'orange', 'green', 'red', 'purple', 'brown', 'pink', 'gray', 'olive', 'cyan']
+
+    # Empty list to store aerosol dataframes
+    aerosol_anomaly_dfs = []
+    aerosol_climatology_smooth_dfs = []
+
+    for aerosol_str in aerosol_types:
+        # Get color for plotting
+        color = colors.pop(0)
+        
+        # Get specified aerosol data
+        aerosol = aerosol_data[aerosol_str]
+
+        # Merge aerosol and t into one dataframe
+        aerosol_df = pd.concat([t, aerosol], axis=1)
+        
+        # Create climatology object
+        climatology = Climatology(aerosol_df, aerosol_str, 'date', n_days=n_days_clim)
+
+        # Compute smoothed climatology
+        climatology_smooth = climatology.climatology_smooth
+        aerosol_climatology_smooth_dfs.append(climatology_smooth)
+        # Plot smoothed climatology
+        axs_clim[0].plot(climatology_smooth.index, climatology_smooth[aerosol_str, 'mean'], label=aerosol_str, lw=0.8, color=color)
+        
+
+        # Calculate anomalies for both aerosol and NWVF
+        aerosol_anomalies = climatology.calculate_anomalies(aerosol_df)
+        aerosol_anomaly_dfs.append(aerosol_anomalies)
+        # Plot anomalies
+        axs_anom[0].plot(aerosol_anomalies['date'], aerosol_anomalies['anomaly'], label=aerosol_str, lw=0.8, color=color)
+        # Plot histograms
+        axs_hist[0].hist(aerosol_anomalies['anomaly'], bins=50, color=color, alpha=0.7, label=aerosol_str)
+
+
+    # Calculate NWVF climatology and anomalies'
+    NWVF_climatology = Climatology(daily_NWVF_df, 'nwvf_integral', 'time', n_days=n_days_clim)
+    NWVF_climatology_smooth = NWVF_climatology.climatology_smooth
+    NWVF_anomalies = NWVF_climatology.calculate_anomalies(daily_NWVF_df)
+    # Plot NWVF climatology
+    axs_clim[1].plot(NWVF_climatology_smooth.index, NWVF_climatology_smooth['nwvf_integral', 'mean'], label='NWVF', lw=0.8, color='teal')
+    # Plot NWVF anomalies
+    axs_anom[1].plot(NWVF_anomalies['time'], NWVF_anomalies['anomaly'], label='NWVF', lw=0.8, color='teal')
     # Plot histograms
-    axs_hist[0].hist(aerosol_anomalies['anomaly'], bins=50, color=color, alpha=0.7, label=aerosol_str)
+    axs_hist[1].hist(NWVF_anomalies['anomaly'], bins=50, color='teal', alpha=0.7, label='NWVF')
 
+    # Add legends
+    axs_clim[0].legend()
+    axs_clim[1].legend()
+    axs_anom[0].legend()
+    axs_anom[1].legend()
 
-# Calculate NWVF climatology and anomalies'
-NWVF_climatology = Climatology(daily_NWVF_df, 'nwvf_integral', 'time', n_days=n_days_clim)
-NWVF_climatology_smooth = NWVF_climatology.climatology_smooth
-NWVF_anomalies = NWVF_climatology.calculate_anomalies(daily_NWVF_df)
-# Plot NWVF climatology
-axs_clim[1].plot(NWVF_climatology_smooth.index, NWVF_climatology_smooth['nwvf_integral', 'mean'], label='NWVF', lw=0.8, color='teal')
-# Plot NWVF anomalies
-axs_anom[1].plot(NWVF_anomalies['time'], NWVF_anomalies['anomaly'], label='NWVF', lw=0.8, color='teal')
-# Plot histograms
-axs_hist[1].hist(NWVF_anomalies['anomaly'], bins=50, color='teal', alpha=0.7, label='NWVF')
-
-# Add legends
-axs_clim[0].legend()
-axs_clim[1].legend()
-axs_anom[0].legend()
-axs_anom[1].legend()
-
-fig_clim.tight_layout()
-fig_anom.tight_layout()
-print(PATH_FIGS)
-# Save figures 
-if SAVE_FIGS:
-    fig_clim.savefig(PATH_FIGS + 'SmoothedClimatologies' + region_str + '.png', dpi=600)
-    fig_anom.savefig(PATH_FIGS + 'Anomalies' + region_str + '.png', dpi=600)
-    fig_hist.savefig(PATH_FIGS + 'Histograms' + region_str + '.png', dpi=600)
-
-
-
-
-
-
-
-
-
-##################
-# EVENT ANALYSIS #
-##################
-
-sigma_ns = 1
-# Loop through all aerosol anomaly dataframes and perform event analysis
-for i, aerosol_anomaly_df in enumerate(aerosol_anomaly_dfs):
-    # Get the aerosol name
-    aerosol_name = aerosol_types[i]
-    # Create an EventAnalysis object
-    event_analysis = EventAnalysis(aerosol_anomaly_df, 'anomaly', NWVF_anomalies, 'anomaly', n_sigmas=sigma_ns)
-    # Plot the data
-    fig, (ax1, ax2) = event_analysis.plot_all_data(bins_nwvf=32, bins_aerosol=32, show_figs=False, save_figs=False, save_path=None, plot_events_pos=True,
-                        plot_events_neg=True)
-    fig.suptitle(f'Anomaly timeseries, {aerosol_name}')
-    
-    PATH_AEROSOL = PATH_FIGS + '/' + aerosol_name
-    if not os.path.exists(PATH_AEROSOL):
-        os.makedirs(PATH_AEROSOL)
-
+    fig_clim.tight_layout()
+    fig_anom.tight_layout()
+    print(PATH_FIGS)
+    # Save figures 
     if SAVE_FIGS:
-        fig.savefig(PATH_AEROSOL + 'AnomalyTimeseries_' + aerosol_name + region_str + '.png', dpi=600)
-
-    # Mask the data based on the statistical parameters (e.g. 1 sigma)
-    masked_nwvf_data_pos, masked_nwvf_data_neg, masked_aerosol_data_pos, masked_aerosol_data_neg = event_analysis.mask_data_by_stats()
-    # Plot histograms of masked data
-    fig, ax = plt.subplots(3, 1, figsize=(10, 8))
-    fig.suptitle(f'Event analysis of anomalies, {aerosol_name}')
-
-    # Get the data from the histograms (values and bins) for CDF calculation
-    ax[0].hist(NWVF_anomalies['anomaly'],
-                bins=32,
-                alpha=0.9,
-                label='All data',
-                ec='darkblue',
-                fc='lightblue')
-    
-    ax[0].hist(masked_nwvf_data_pos,
-                bins=9,
-                alpha=0.9,
-                label=F'+{sigma_ns} sigma, {len(masked_nwvf_data_pos)} events',
-                ec='darkgreen',
-                fc='lightgreen')
-
-    ax[0].set_title('NWVF')
-    ax[0].legend()
+        fig_clim.savefig(PATH_FIGS + 'SmoothedClimatologies' + region_str + '.png', dpi=600)
+        fig_anom.savefig(PATH_FIGS + 'Anomalies' + region_str + '.png', dpi=600)
+        fig_hist.savefig(PATH_FIGS + 'Histograms' + region_str + '.png', dpi=600)
 
 
-    ax[1].hist(aerosol_anomaly_df['anomaly'],
-                bins=32,
-                alpha=0.9,
-                label='All data',
-                ec='darkblue',
-                fc='lightblue'
-                )
-    
-    ax[1].hist(masked_aerosol_data_pos,
-                bins=10,
+
+
+
+
+
+
+
+    ##################
+    # EVENT ANALYSIS #
+    ##################
+
+    sigma_ns = 1
+    # Loop through all aerosol anomaly dataframes and perform event analysis
+    for i, aerosol_anomaly_df in enumerate(aerosol_anomaly_dfs):
+        # Get the aerosol name
+        aerosol_name = aerosol_types[i]
+        # Create an EventAnalysis object
+        event_analysis = EventAnalysis(aerosol_anomaly_df, 'anomaly', NWVF_anomalies, 'anomaly', n_sigmas=sigma_ns)
+        # Plot the data
+        fig, (ax1, ax2) = event_analysis.plot_all_data(bins_nwvf=32, bins_aerosol=32, show_figs=False, save_figs=False, save_path=None, plot_events_pos=True,
+                            plot_events_neg=True)
+        fig.suptitle(f'Anomaly timeseries, {aerosol_name}')
+        
+        PATH_AEROSOL = PATH_FIGS + '/' + aerosol_name
+        if not os.path.exists(PATH_AEROSOL):
+            os.makedirs(PATH_AEROSOL)
+
+        if SAVE_FIGS:
+            fig.savefig(PATH_AEROSOL + 'AnomalyTimeseries_' + aerosol_name + region_str + '.png', dpi=600)
+
+        # Mask the data based on the statistical parameters (e.g. 1 sigma)
+        masked_nwvf_data_pos, masked_nwvf_data_neg, masked_aerosol_data_pos, masked_aerosol_data_neg = event_analysis.mask_data_by_stats()
+        # Plot histograms of masked data
+        fig, ax = plt.subplots(3, 1, figsize=(10, 8))
+        fig.suptitle(f'Event analysis of anomalies, {aerosol_name}')
+
+        # Get the data from the histograms (values and bins) for CDF calculation
+        ax[0].hist(NWVF_anomalies['anomaly'],
+                    bins=32,
+                    alpha=0.9,
+                    label='All data',
+                    ec='darkblue',
+                    fc='lightblue')
+        
+        ax[0].hist(masked_nwvf_data_pos,
+                    bins=9,
+                    alpha=0.9,
+                    label=F'+{sigma_ns} sigma, {len(masked_nwvf_data_pos)} events',
+                    ec='darkgreen',
+                    fc='lightgreen')
+
+        ax[0].set_title('NWVF')
+        ax[0].legend()
+
+
+        ax[1].hist(aerosol_anomaly_df['anomaly'],
+                    bins=32,
+                    alpha=0.9,
+                    label='All data',
+                    ec='darkblue',
+                    fc='lightblue'
+                    )
+        
+        ax[1].hist(masked_aerosol_data_pos,
+                    bins=10,
+                    alpha=0.9,
+                    label=F'+{sigma_ns} sigma, {len(masked_aerosol_data_pos)} events',
+                    ec='darkgreen',
+                    fc='lightgreen'
+                    )
+        ax[1].set_title('Aerosol')
+
+
+        ax[2].hist(aerosol_anomaly_df['anomaly'],
+                    bins=32,
+                    alpha=0.9,
+                    label='All data',
+                    ec='darkblue',
+                    fc='lightblue',
+                    log=True
+                    )
+        ax[2].hist(masked_aerosol_data_pos,
+                bins=17,
                 alpha=0.9,
                 label=F'+{sigma_ns} sigma, {len(masked_aerosol_data_pos)} events',
                 ec='darkgreen',
-                fc='lightgreen'
-                )
-    ax[1].set_title('Aerosol')
-
-
-    ax[2].hist(aerosol_anomaly_df['anomaly'],
-                bins=32,
-                alpha=0.9,
-                label='All data',
-                ec='darkblue',
-                fc='lightblue',
+                fc='lightgreen',
                 log=True
                 )
-    ax[2].hist(masked_aerosol_data_pos,
-            bins=17,
-            alpha=0.9,
-            label=F'+{sigma_ns} sigma, {len(masked_aerosol_data_pos)} events',
-            ec='darkgreen',
-            fc='lightgreen',
-            log=True
-            )
 
-    ax[2].set_title('Aerosol, log-scale')
-    ax[2].legend()
+        ax[2].set_title('Aerosol, log-scale')
+        ax[2].legend()
 
-    fig.tight_layout()
+        fig.tight_layout()
 
-    # save figures
-    if SAVE_FIGS:
-        fig.savefig(PATH_AEROSOL + '/' + f'EventAnalysis_{aerosol_name}' + region_str + '.png', dpi=600)
+        # save figures
+        if SAVE_FIGS:
+            fig.savefig(PATH_AEROSOL + '/' + f'EventAnalysis_{aerosol_name}' + region_str + '.png', dpi=600)
 
 
-    # Use np.sort to get the CDF values 
-    x_nwvf = np.sort(NWVF_anomalies['anomaly'])
-    f_nwvf = np.arange(len(x_nwvf)) / float(len(x_nwvf))
-    x_aerosol = np.sort(aerosol_anomaly_df['anomaly'])
-    f_aerosol = np.arange(len(x_aerosol)) / float(len(x_aerosol))
-    x_masked_nwvf = np.sort(masked_nwvf_data_pos)
-    f_masked_nwvf = np.arange(len(x_masked_nwvf)) / float(len(x_masked_nwvf))
-    x_masked_aerosol = np.sort(masked_aerosol_data_pos)
-    f_masked_aerosol = np.arange(len(x_masked_aerosol)) / float(len(x_masked_aerosol))
+        # Use np.sort to get the CDF values 
+        x_nwvf = np.sort(NWVF_anomalies['anomaly'])
+        f_nwvf = np.arange(len(x_nwvf)) / float(len(x_nwvf))
+        x_aerosol = np.sort(aerosol_anomaly_df['anomaly'])
+        f_aerosol = np.arange(len(x_aerosol)) / float(len(x_aerosol))
+        x_masked_nwvf = np.sort(masked_nwvf_data_pos)
+        f_masked_nwvf = np.arange(len(x_masked_nwvf)) / float(len(x_masked_nwvf))
+        x_masked_aerosol = np.sort(masked_aerosol_data_pos)
+        f_masked_aerosol = np.arange(len(x_masked_aerosol)) / float(len(x_masked_aerosol))
 
 
-    # Make KS-test on aerosol vs. masked aerosol
-    ks_aerosol, p_aerosol = ks_2samp(aerosol_anomaly_df['anomaly'], masked_aerosol_data_pos)
-    print(f'KS-test aerosol vs. masked aerosol, {aerosol_name}: KS={ks_aerosol:.4f}, p={p_aerosol:.4f}')
+        # Make KS-test on aerosol vs. masked aerosol
+        ks_aerosol, p_aerosol = ks_2samp(aerosol_anomaly_df['anomaly'], masked_aerosol_data_pos)
+        print(f'KS-test aerosol vs. masked aerosol, {aerosol_name}: KS={ks_aerosol:.4f}, p={p_aerosol:.4f}')
 
 
-    # Plot CDFs
-    fig, ax = plt.subplots(2, 1, figsize=(10, 8))
-    fig.suptitle(f'CDF of anomalies, {aerosol_name}, KS-test: KS={ks_aerosol:.4f}, p={p_aerosol:.4f}')
+        # Plot CDFs
+        fig, ax = plt.subplots(2, 1, figsize=(10, 8))
+        fig.suptitle(f'CDF of anomalies, {aerosol_name}, KS-test: KS={ks_aerosol:.4f}, p={p_aerosol:.4f}')
 
-    ax[0].plot(x_nwvf, f_nwvf, label='NWVF', color='teal')
-    # ax[0].plot(x_masked_nwvf, f_masked_nwvf, label='NWVF masked', color='green')
-    ax[0].set_title('NWVF')
-    ax[0].legend()
+        ax[0].plot(x_nwvf, f_nwvf, label='NWVF', color='teal')
+        # ax[0].plot(x_masked_nwvf, f_masked_nwvf, label='NWVF masked', color='green')
+        ax[0].set_title('NWVF')
+        ax[0].legend()
 
-    ax[1].plot(x_aerosol, f_aerosol, label='Aerosol', color='teal')
-    ax[1].plot(x_masked_aerosol, f_masked_aerosol, label='Aerosol masked', color='green')
-    ax[1].set_title('Aerosol')
-    ax[1].legend()
+        ax[1].plot(x_aerosol, f_aerosol, label='Aerosol', color='teal')
+        ax[1].plot(x_masked_aerosol, f_masked_aerosol, label='Aerosol masked', color='green')
+        ax[1].set_title('Aerosol')
+        ax[1].legend()
 
-    fig.tight_layout()
-    
+        fig.tight_layout()
+        
 
 
 
 
 
-    plt.show()
-    break
+        plt.show()
+        break
 
 
 
@@ -653,37 +657,37 @@ for i, aerosol_anomaly_df in enumerate(aerosol_anomaly_dfs):
 
 
 
-# # Save data in pd series (most important aerosols: ['BC', 'Dust', 'SO4', 'TotalMass'])
-# # If 'TotalMass' is chosen, the sum of all aerosols is calculated
-# if aerosol_str == 'TotalMass':
-#     aerosol = aerosol_data['BC'] + aerosol_data['Dust'] + aerosol_data['SO4']
-#     # Add 'TotalMass' header
-#     aerosol = pd.DataFrame(aerosol, columns=['TotalMass'])
-# else:
-#     aerosol = aerosol_data[aerosol_str]
-# # Merge aerosol and t into one dataframe
-# aerosol_df = pd.concat([t, aerosol], axis=1)
+    # # Save data in pd series (most important aerosols: ['BC', 'Dust', 'SO4', 'TotalMass'])
+    # # If 'TotalMass' is chosen, the sum of all aerosols is calculated
+    # if aerosol_str == 'TotalMass':
+    #     aerosol = aerosol_data['BC'] + aerosol_data['Dust'] + aerosol_data['SO4']
+    #     # Add 'TotalMass' header
+    #     aerosol = pd.DataFrame(aerosol, columns=['TotalMass'])
+    # else:
+    #     aerosol = aerosol_data[aerosol_str]
+    # # Merge aerosol and t into one dataframe
+    # aerosol_df = pd.concat([t, aerosol], axis=1)
 
-# # Filter data to only after 1997 and before 2022-07-01
-# aerosol_df = aerosol_df[aerosol_df['date'] >= start_date_str]
-# aerosol_df = aerosol_df[aerosol_df['date'] <= end_date_str]
+    # # Filter data to only after 1997 and before 2022-07-01
+    # aerosol_df = aerosol_df[aerosol_df['date'] >= start_date_str]
+    # aerosol_df = aerosol_df[aerosol_df['date'] <= end_date_str]
 
 
-# # NWVF DATA
+    # # NWVF DATA
 
-# # Read ERA5 NWVF (6 hourly) data from .nc file
-# NWVF_ERA5 = xr.open_dataset(PATH_DATA + 'Processed_MAIA/MAIA_nwvf_integrals_1994-2022__6hr_mean.nc')
+    # # Read ERA5 NWVF (6 hourly) data from .nc file
+    # NWVF_ERA5 = xr.open_dataset(PATH_DATA + 'Processed_MAIA/MAIA_nwvf_integrals_1994-2022__6hr_mean.nc')
 
-# # Resample NWVF data to daily data and save in dataframe
-# daily_NWVF = NWVF_ERA5['nwvf_integral'].resample(time='1D').sum()
-# daily_NWVF_df = daily_NWVF.to_dataframe()
+    # # Resample NWVF data to daily data and save in dataframe
+    # daily_NWVF = NWVF_ERA5['nwvf_integral'].resample(time='1D').sum()
+    # daily_NWVF_df = daily_NWVF.to_dataframe()
 
-# # Reset index of daily_NWVF_df
-# daily_NWVF_df.reset_index(inplace=True)
+    # # Reset index of daily_NWVF_df
+    # daily_NWVF_df.reset_index(inplace=True)
 
-# # Filter data to only after 1997 and before 2022-07-01
-# daily_NWVF_df = daily_NWVF_df[daily_NWVF_df['time'] >= start_date_str]
-# daily_NWVF_df = daily_NWVF_df[daily_NWVF_df['time'] <= end_date_str]
+    # # Filter data to only after 1997 and before 2022-07-01
+    # daily_NWVF_df = daily_NWVF_df[daily_NWVF_df['time'] >= start_date_str]
+    # daily_NWVF_df = daily_NWVF_df[daily_NWVF_df['time'] <= end_date_str]
 
 
 
@@ -693,85 +697,85 @@ for i, aerosol_anomaly_df in enumerate(aerosol_anomaly_dfs):
 
 
 
-# ###############################
-# # COMPUTE CLIMATOLOGY (DAILY) #
-# ###############################
+    # ###############################
+    # # COMPUTE CLIMATOLOGY (DAILY) #
+    # ###############################
 
-# # Calculate the daily mean and std of both NWVF and aerosol (1. jan, 2. jan,..., 31. dec)
-# # Aerosol
-# aerosol_df['day'] = aerosol_df['date'].dt.dayofyear
-# aerosol_climatology = aerosol_df.groupby('day').agg(['mean', 'std'])
-# # NWVF
-# daily_NWVF_df['day'] = daily_NWVF_df['time'].dt.dayofyear
-# NWVF_climatology = daily_NWVF_df.groupby('day').agg(['mean', 'std'])
+    # # Calculate the daily mean and std of both NWVF and aerosol (1. jan, 2. jan,..., 31. dec)
+    # # Aerosol
+    # aerosol_df['day'] = aerosol_df['date'].dt.dayofyear
+    # aerosol_climatology = aerosol_df.groupby('day').agg(['mean', 'std'])
+    # # NWVF
+    # daily_NWVF_df['day'] = daily_NWVF_df['time'].dt.dayofyear
+    # NWVF_climatology = daily_NWVF_df.groupby('day').agg(['mean', 'std'])
 
 
-# # Extend the climatology to include February 29
-# # Fill February 29 with average of Feb 28 and Mar 1 if missing
-# climatology_template = pd.DataFrame(index=pd.date_range('2000-01-01', '2000-12-31'))
-# climatology_template['day_of_year'] = climatology_template.index.dayofyear
-# climatology_template = climatology_template.set_index('day_of_year')
+    # # Extend the climatology to include February 29
+    # # Fill February 29 with average of Feb 28 and Mar 1 if missing
+    # climatology_template = pd.DataFrame(index=pd.date_range('2000-01-01', '2000-12-31'))
+    # climatology_template['day_of_year'] = climatology_template.index.dayofyear
+    # climatology_template = climatology_template.set_index('day_of_year')
 
 
-# # Merge climatology with template
-# aerosol_climatology_full = climatology_template.join(aerosol_climatology, how='left')
-# aerosol_climatology_full = aerosol_climatology_full.interpolate()  # Fill Feb 29 if missing
+    # # Merge climatology with template
+    # aerosol_climatology_full = climatology_template.join(aerosol_climatology, how='left')
+    # aerosol_climatology_full = aerosol_climatology_full.interpolate()  # Fill Feb 29 if missing
 
-# NWVF_climatology_full = climatology_template.join(NWVF_climatology, how='left')
-# NWVF_climatology_full = NWVF_climatology_full.interpolate()  # Fill Feb 29 if missing
+    # NWVF_climatology_full = climatology_template.join(NWVF_climatology, how='left')
+    # NWVF_climatology_full = NWVF_climatology_full.interpolate()  # Fill Feb 29 if missing
 
 
 
 
 
 
-# #########################################
-# # COMPUTE CIRCULAR SMOOTHED CLIMATOLOGY #
-# #########################################
+    # #########################################
+    # # COMPUTE CIRCULAR SMOOTHED CLIMATOLOGY #
+    # #########################################
 
-# # Make a (circular) smoothed version of the climatology and add column with day of year in format 'MM-DD' and account for leap years
-# n_days = 7
-# # Define number of days to pad the climatology with at the beginning and end of the year
-# pad_length = n_days // 2
+    # # Make a (circular) smoothed version of the climatology and add column with day of year in format 'MM-DD' and account for leap years
+    # n_days = 7
+    # # Define number of days to pad the climatology with at the beginning and end of the year
+    # pad_length = n_days // 2
 
-# # Create circular padding by appending and prepending daata from climatology
-# # Aerosol
-# aerosol_climatology_padded = pd.concat([aerosol_climatology_full.iloc[-pad_length:], aerosol_climatology_full, aerosol_climatology_full.iloc[:pad_length]])
-# aerosol_climatology_smooth_padded = aerosol_climatology_padded.rolling(window=n_days, center=True).mean()
-# aerosol_climatology_smooth = aerosol_climatology_smooth_padded.iloc[pad_length:-pad_length]
-# aerosol_climatology_smooth['day'] = pd.to_datetime(aerosol_climatology_smooth.index, format='%j').strftime('%m-%d')
+    # # Create circular padding by appending and prepending daata from climatology
+    # # Aerosol
+    # aerosol_climatology_padded = pd.concat([aerosol_climatology_full.iloc[-pad_length:], aerosol_climatology_full, aerosol_climatology_full.iloc[:pad_length]])
+    # aerosol_climatology_smooth_padded = aerosol_climatology_padded.rolling(window=n_days, center=True).mean()
+    # aerosol_climatology_smooth = aerosol_climatology_smooth_padded.iloc[pad_length:-pad_length]
+    # aerosol_climatology_smooth['day'] = pd.to_datetime(aerosol_climatology_smooth.index, format='%j').strftime('%m-%d')
 
-# # NWVF
-# NWVF_climatology_padded = pd.concat([NWVF_climatology_full.iloc[-pad_length:], NWVF_climatology_full, NWVF_climatology_full.iloc[:pad_length]])
-# NWVF_climatology_smooth_padded = NWVF_climatology_padded.rolling(window=n_days, center=True).mean()
-# NWVF_climatology_smooth = NWVF_climatology_smooth_padded.iloc[pad_length:-pad_length]
-# NWVF_climatology_smooth['day'] = pd.to_datetime(NWVF_climatology_smooth.index, format='%j').strftime('%m-%d')
+    # # NWVF
+    # NWVF_climatology_padded = pd.concat([NWVF_climatology_full.iloc[-pad_length:], NWVF_climatology_full, NWVF_climatology_full.iloc[:pad_length]])
+    # NWVF_climatology_smooth_padded = NWVF_climatology_padded.rolling(window=n_days, center=True).mean()
+    # NWVF_climatology_smooth = NWVF_climatology_smooth_padded.iloc[pad_length:-pad_length]
+    # NWVF_climatology_smooth['day'] = pd.to_datetime(NWVF_climatology_smooth.index, format='%j').strftime('%m-%d')
 
 
-# # Function to get anomalies for a given year
-# def calculate_anomalies(df, climatology, value_column, date_column):
-#     anomalies = pd.DataFrame()
-#     for year in df[date_column].dt.year.unique():
-#         # Extract data for the specific year
-#         year_data = df[df[date_column].dt.year == year].copy()
-#         print('\nYear:', year)
-#         print('Length:', len(year_data))
+    # # Function to get anomalies for a given year
+    # def calculate_anomalies(df, climatology, value_column, date_column):
+    #     anomalies = pd.DataFrame()
+    #     for year in df[date_column].dt.year.unique():
+    #         # Extract data for the specific year
+    #         year_data = df[df[date_column].dt.year == year].copy()
+    #         print('\nYear:', year)
+    #         print('Length:', len(year_data))
 
-#         # Align day of year including leap year
-#         year_data['day_of_year'] = year_data[date_column].dt.dayofyear
-#         if len(year_data) == 366:  # Check for leap year
-#             climatology_to_use = climatology
-#         else:
-#             # Drop Feb 29 for non-leap years
-#             climatology_to_use = climatology[climatology.index != 60]
-#         # Calculate anomalies
-#         year_data['anomaly'] = year_data[value_column].values - climatology_to_use[value_column, 'mean'].values
-#         anomalies = pd.concat([anomalies, year_data])
-#     return anomalies
+    #         # Align day of year including leap year
+    #         year_data['day_of_year'] = year_data[date_column].dt.dayofyear
+    #         if len(year_data) == 366:  # Check for leap year
+    #             climatology_to_use = climatology
+    #         else:
+    #             # Drop Feb 29 for non-leap years
+    #             climatology_to_use = climatology[climatology.index != 60]
+    #         # Calculate anomalies
+    #         year_data['anomaly'] = year_data[value_column].values - climatology_to_use[value_column, 'mean'].values
+    #         anomalies = pd.concat([anomalies, year_data])
+    #     return anomalies
 
-# # Calculate anomalies for both aerosol and NWVF
-# aerosol_anomalies = calculate_anomalies(aerosol_df, aerosol_climatology_smooth, aerosol_str, 'date')
-# NWVF_anomalies = calculate_anomalies(daily_NWVF_df, NWVF_climatology_smooth, 'nwvf_integral', 'time')
+    # # Calculate anomalies for both aerosol and NWVF
+    # aerosol_anomalies = calculate_anomalies(aerosol_df, aerosol_climatology_smooth, aerosol_str, 'date')
+    # NWVF_anomalies = calculate_anomalies(daily_NWVF_df, NWVF_climatology_smooth, 'nwvf_integral', 'time')
 
 
 
@@ -787,106 +791,106 @@ for i, aerosol_anomaly_df in enumerate(aerosol_anomaly_dfs):
 
 
 
-# #####################################
-# # PLOT TIMESERIES AND CLIMATOLOGIES #
-# #####################################
+    # #####################################
+    # # PLOT TIMESERIES AND CLIMATOLOGIES #
+    # #####################################
 
-# # Plot aerosol and NWVF in different subplots
-# fig, axs = plt.subplots(2, 1, figsize=(18, 6), sharex=True)
+    # # Plot aerosol and NWVF in different subplots
+    # fig, axs = plt.subplots(2, 1, figsize=(18, 6), sharex=True)
 
-# axs[0].plot(aerosol_df['date'], aerosol_df[aerosol_str], label='Aerosol', color='teal', lw=0.8)
-# # axs[0].set_title(f'Aerosol (correlation with NWVF: {correlation[0, 1]:.4f})')
-# axs[0].set_ylabel('aerosol [kg/m2]')
-# axs[0].grid()
-# axs[0].legend()
+    # axs[0].plot(aerosol_df['date'], aerosol_df[aerosol_str], label='Aerosol', color='teal', lw=0.8)
+    # # axs[0].set_title(f'Aerosol (correlation with NWVF: {correlation[0, 1]:.4f})')
+    # axs[0].set_ylabel('aerosol [kg/m2]')
+    # axs[0].grid()
+    # axs[0].legend()
 
-# axs[1].plot(daily_NWVF_df['time'], daily_NWVF_df['nwvf_integral'], label='NWVF', color='teal', lw=0.8)
-# axs[1].set_title('NWVF')
-# axs[1].set_ylabel('NWVF [kg/m2]')
-# axs[1].set_xlabel('Time')
-# # Set x-axis to [first_day, last_day]
-# axs[1].set_xlim([daily_NWVF_df['time'].iloc[0], daily_NWVF_df['time'].iloc[-1]])
-# axs[1].grid()
-# axs[1].legend()
+    # axs[1].plot(daily_NWVF_df['time'], daily_NWVF_df['nwvf_integral'], label='NWVF', color='teal', lw=0.8)
+    # axs[1].set_title('NWVF')
+    # axs[1].set_ylabel('NWVF [kg/m2]')
+    # axs[1].set_xlabel('Time')
+    # # Set x-axis to [first_day, last_day]
+    # axs[1].set_xlim([daily_NWVF_df['time'].iloc[0], daily_NWVF_df['time'].iloc[-1]])
+    # axs[1].grid()
+    # axs[1].legend()
 
-# fig.tight_layout()
+    # fig.tight_layout()
 
-# # Save the figure as an image file
-# if SAVE_FIGS:
-#     plt.savefig(PATH_FIGS + aerosol_str + '_NWVF_raw_comparison' + region_str + '.png')
+    # # Save the figure as an image file
+    # if SAVE_FIGS:
+    #     plt.savefig(PATH_FIGS + aerosol_str + '_NWVF_raw_comparison' + region_str + '.png')
 
 
 
-# # Plot the climatology
-# fig, axs = plt.subplots(2, 1, figsize=(18, 6), sharex=True)
+    # # Plot the climatology
+    # fig, axs = plt.subplots(2, 1, figsize=(18, 6), sharex=True)
 
-# axs[0].plot(aerosol_climatology.index, aerosol_climatology[aerosol_str]['mean'], label='Aerosol', color='teal', lw=0.8)
-# axs[0].fill_between(aerosol_climatology.index, aerosol_climatology[aerosol_str]['mean'] - aerosol_climatology[aerosol_str]['std'],
-#                     aerosol_climatology[aerosol_str]['mean'] + aerosol_climatology[aerosol_str]['std'], color='teal', alpha=0.2)
-# axs[0].set_title(f'Aerosol climatology')
-# axs[0].set_ylabel('aerosol [kg/m2]')
-# axs[0].grid()
-# axs[0].legend()
+    # axs[0].plot(aerosol_climatology.index, aerosol_climatology[aerosol_str]['mean'], label='Aerosol', color='teal', lw=0.8)
+    # axs[0].fill_between(aerosol_climatology.index, aerosol_climatology[aerosol_str]['mean'] - aerosol_climatology[aerosol_str]['std'],
+    #                     aerosol_climatology[aerosol_str]['mean'] + aerosol_climatology[aerosol_str]['std'], color='teal', alpha=0.2)
+    # axs[0].set_title(f'Aerosol climatology')
+    # axs[0].set_ylabel('aerosol [kg/m2]')
+    # axs[0].grid()
+    # axs[0].legend()
 
-# axs[1].plot(NWVF_climatology.index, NWVF_climatology['nwvf_integral']['mean'], label='NWVF', color='teal', lw=0.8)
-# axs[1].fill_between(NWVF_climatology.index, NWVF_climatology['nwvf_integral']['mean'] - NWVF_climatology['nwvf_integral']['std'],
-#                     NWVF_climatology['nwvf_integral']['mean'] + NWVF_climatology['nwvf_integral']['std'], color='teal', alpha=0.2)
-# axs[1].set_title('NWVF climatology')
-# axs[1].set_ylabel('NWVF [kg/m2]')
-# axs[1].set_xlabel('Day of year')
-# axs[1].grid()
-# axs[1].legend()
+    # axs[1].plot(NWVF_climatology.index, NWVF_climatology['nwvf_integral']['mean'], label='NWVF', color='teal', lw=0.8)
+    # axs[1].fill_between(NWVF_climatology.index, NWVF_climatology['nwvf_integral']['mean'] - NWVF_climatology['nwvf_integral']['std'],
+    #                     NWVF_climatology['nwvf_integral']['mean'] + NWVF_climatology['nwvf_integral']['std'], color='teal', alpha=0.2)
+    # axs[1].set_title('NWVF climatology')
+    # axs[1].set_ylabel('NWVF [kg/m2]')
+    # axs[1].set_xlabel('Day of year')
+    # axs[1].grid()
+    # axs[1].legend()
 
-# fig.tight_layout()
+    # fig.tight_layout()
 
 
-# # Plot the smoothed climatology
-# fig, axs = plt.subplots(2, 1, figsize=(18, 6), sharex=True)
+    # # Plot the smoothed climatology
+    # fig, axs = plt.subplots(2, 1, figsize=(18, 6), sharex=True)
 
-# fig.suptitle(f'Smoothed over {n_days} days')
-# axs[0].plot(aerosol_climatology_smooth.index, aerosol_climatology_smooth[aerosol_str, 'mean'], label='Aerosol', color='teal', lw=0.8)
-# axs[0].fill_between(aerosol_climatology_smooth.index, aerosol_climatology_smooth[aerosol_str, 'mean'] - aerosol_climatology_smooth[aerosol_str, 'std'],
-#                     aerosol_climatology_smooth[aerosol_str, 'mean'] + aerosol_climatology_smooth[aerosol_str, 'std'], color='teal', alpha=0.2)
-# axs[0].set_title(f'Aerosol smoothed climatology')
-# axs[0].set_ylabel('aerosol [kg/m2]')
-# axs[0].grid()
-# axs[0].legend()
+    # fig.suptitle(f'Smoothed over {n_days} days')
+    # axs[0].plot(aerosol_climatology_smooth.index, aerosol_climatology_smooth[aerosol_str, 'mean'], label='Aerosol', color='teal', lw=0.8)
+    # axs[0].fill_between(aerosol_climatology_smooth.index, aerosol_climatology_smooth[aerosol_str, 'mean'] - aerosol_climatology_smooth[aerosol_str, 'std'],
+    #                     aerosol_climatology_smooth[aerosol_str, 'mean'] + aerosol_climatology_smooth[aerosol_str, 'std'], color='teal', alpha=0.2)
+    # axs[0].set_title(f'Aerosol smoothed climatology')
+    # axs[0].set_ylabel('aerosol [kg/m2]')
+    # axs[0].grid()
+    # axs[0].legend()
 
-# axs[1].plot(NWVF_climatology_smooth.index, NWVF_climatology_smooth['nwvf_integral', 'mean'], label='NWVF', color='teal', lw=0.8)
-# axs[1].fill_between(NWVF_climatology_smooth.index, NWVF_climatology_smooth['nwvf_integral', 'mean'] - NWVF_climatology_smooth['nwvf_integral', 'std'],
-#                     NWVF_climatology_smooth['nwvf_integral', 'mean'] + NWVF_climatology_smooth['nwvf_integral', 'std'], color='teal', alpha=0.2)
-# axs[1].set_title(f'Aerosol smoothed climatology')
-# axs[1].set_ylabel('aerosol [kg/m2]')
-# axs[1].grid()
-# axs[1].legend()
+    # axs[1].plot(NWVF_climatology_smooth.index, NWVF_climatology_smooth['nwvf_integral', 'mean'], label='NWVF', color='teal', lw=0.8)
+    # axs[1].fill_between(NWVF_climatology_smooth.index, NWVF_climatology_smooth['nwvf_integral', 'mean'] - NWVF_climatology_smooth['nwvf_integral', 'std'],
+    #                     NWVF_climatology_smooth['nwvf_integral', 'mean'] + NWVF_climatology_smooth['nwvf_integral', 'std'], color='teal', alpha=0.2)
+    # axs[1].set_title(f'Aerosol smoothed climatology')
+    # axs[1].set_ylabel('aerosol [kg/m2]')
+    # axs[1].grid()
+    # axs[1].legend()
 
 
-# # Plot the anomalies
-# fig, axs = plt.subplots(2, 1, figsize=(18, 6), sharex=True)
+    # # Plot the anomalies
+    # fig, axs = plt.subplots(2, 1, figsize=(18, 6), sharex=True)
 
-# axs[0].plot(aerosol_anomalies['date'], aerosol_anomalies['anomaly'], label='Aerosol', color='teal', lw=0.8)
-# axs[0].set_title(f'Aerosol anomalies')
-# axs[0].set_ylabel('aerosol anomaly [kg/m2]')
-# axs[0].grid()
-# axs[0].legend()
+    # axs[0].plot(aerosol_anomalies['date'], aerosol_anomalies['anomaly'], label='Aerosol', color='teal', lw=0.8)
+    # axs[0].set_title(f'Aerosol anomalies')
+    # axs[0].set_ylabel('aerosol anomaly [kg/m2]')
+    # axs[0].grid()
+    # axs[0].legend()
 
-# axs[1].plot(NWVF_anomalies['time'], NWVF_anomalies['anomaly'], label='NWVF', color='teal', lw=0.8)
-# axs[1].set_title('NWVF anomalies')
-# axs[1].set_ylabel('NWVF anomaly [kg/m2]')
-# axs[1].set_xlabel('Time')
-# axs[1].grid()
-# axs[1].legend()
+    # axs[1].plot(NWVF_anomalies['time'], NWVF_anomalies['anomaly'], label='NWVF', color='teal', lw=0.8)
+    # axs[1].set_title('NWVF anomalies')
+    # axs[1].set_ylabel('NWVF anomaly [kg/m2]')
+    # axs[1].set_xlabel('Time')
+    # axs[1].grid()
+    # axs[1].legend()
 
-# fig.tight_layout()
+    # fig.tight_layout()
 
 
-# # plt.close()
-# # Subtract the smoothed climatology from each year in the timeseries to get the anomaly
-# # Aerosol
+    # # plt.close()
+    # # Subtract the smoothed climatology from each year in the timeseries to get the anomaly
+    # # Aerosol
 
 
 
 
-# plt.show()
+    # plt.show()
 
 
