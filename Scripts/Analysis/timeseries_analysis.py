@@ -298,7 +298,7 @@ if __name__ == '__main__':
     # Import aerosol txt file (with header)
     aerosol_data = pd.read_csv(PATH_DATA + 'ModelData/TS_AerosolBurden_ArcticSlice' + region_str + '.txt') #AerosolBurden
     cloud_data = pd.read_csv(PATH_DATA + 'ModelData/TS_Clouds_ArcticSlice.txt')
-    print(cloud_data.head())
+    
 
 
     # Save time data in datetime format in dataframe and crop data to only after 1997 and before 2022-07-01
@@ -354,7 +354,7 @@ if __name__ == '__main__':
 
     # Figure to plot all smoothed aerosol climatologies (one subplot) and smoothed NWVF climatology (one subplot)
     fig_clim, axs_clim = plt.subplots(2, 1, figsize=(18, 6), sharex=True)
-    axs_clim[0].set_title('Smoothed climatology, aerosols')
+    axs_clim[0].set_title(f'Smoothed climatology, aerosols')
     # Set x-axis to [first_day, last_day]
     axs_clim[0].set_xlim([1, 366])
     # Add grid and axis labels
@@ -472,6 +472,7 @@ if __name__ == '__main__':
     sigma_ns = 1
     # Loop through all aerosol anomaly dataframes and perform event analysis
     for i, aerosol_anomaly_df in enumerate(aerosol_anomaly_dfs):
+        aerosol_str = aerosol_types[i]
         # Get the aerosol name
         aerosol_name = aerosol_types[i]
         # Create an EventAnalysis object
@@ -583,9 +584,9 @@ if __name__ == '__main__':
         ax[0].set_title('NWVF')
         ax[0].legend()
 
-        ax[1].plot(x_aerosol, f_aerosol, label='Aerosol', color='teal')
-        ax[1].plot(x_masked_aerosol, f_masked_aerosol, label='Aerosol masked', color='green')
-        ax[1].set_title('Aerosol')
+        ax[1].plot(x_aerosol, f_aerosol, label=aerosol_str, color='teal')
+        ax[1].plot(x_masked_aerosol, f_masked_aerosol, label=f'{aerosol_str} masked', color='green')
+        ax[1].set_title(aerosol_str)
         ax[1].legend()
 
         fig.tight_layout()
@@ -595,8 +596,8 @@ if __name__ == '__main__':
 
 
 
-        plt.show()
-        break
+    plt.show()
+        
 
 
 

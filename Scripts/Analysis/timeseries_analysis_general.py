@@ -30,18 +30,31 @@ PATH_FIGS = '../../Figures/AnomalyTimeseriesAnalysis/'
 if not os.path.exists(PATH_FIGS):
     os.makedirs(PATH_FIGS)
 
-nwvf_filename = 'Processed_MAIA/MAIA_nwvf_integrals_1994-2022__6hr_mean.nc'
+nwvf_filename = 'ModelData/TS_Clouds_ArcticSlice.txt' #'Processed_MAIA/MAIA_nwvf_integrals_1994-2022__6hr_mean.nc'
 model_data_filename = 'ModelData/TS_Clouds_ArcticSlice.txt'
 
 
 # NWVF DATA
 
 # Read ERA5 NWVF (6 hourly) data from .nc file
-NWVF_ERA5 = xr.open_dataset(PATH_DATA + nwvf_filename)
+NWVF_ERA5 = pd.read_csv(PATH_DATA + nwvf_filename) #xr.open_dataset(PATH_DATA + nwvf_filename)
 
+print(NWVF_ERA5)
 # Resample NWVF data to daily data and save in dataframe
-daily_NWVF = NWVF_ERA5['nwvf_integral'].resample(time='1D').sum()
-daily_NWVF_df = daily_NWVF.to_dataframe()
+
+#daily_NWVF = NWVF_ERA5['nwvf_integral'].resample(time='1D').sum()
+
+daily_NWVF = NWVF_ERA5['pvq']#.resample(time='1D').sum()
+daily_dates = NWVF_ERA5['date']#.resample(time='1D').mean()
+print(daily_NWVF)
+# Create a dataframe with the daily NWVF data
+daily_NWVF_df = pd.DataFrame(daily_NWVF)
+# Change the name of the column to 'nwvf_integral'
+daily_NWVF_df.columns = ['nwvf_integral']
+
+daily_NWVF_df['time'] = daily_dates
+# To datetime
+daily_NWVF_df['time'] = pd.to_datetime(daily_NWVF_df['time'])
 
 # Reset index of daily_NWVF_df
 daily_NWVF_df.reset_index(inplace=True)
@@ -50,10 +63,9 @@ daily_NWVF_df.reset_index(inplace=True)
 daily_NWVF_df = daily_NWVF_df[daily_NWVF_df['time'] >= start_date_str]
 daily_NWVF_df = daily_NWVF_df[daily_NWVF_df['time'] <= end_date_str]
 
-
+print(daily_NWVF_df)
 
 # MODEL DATA
-
 # Read model data
 model_data = pd.read_csv(PATH_DATA + model_data_filename)
 
@@ -173,7 +185,7 @@ for i, ax in enumerate(axs3):
 # Start with plotting NWVF, climatology
 axs2[0].plot(NWVF_climatology_smooth.index, NWVF_climatology_smooth['nwvf_integral', 'mean'], label='NWVF', color='black', lw=1)
 
-
+print(NWVF_anomalies)
 axs3[0, 0].plot(NWVF_anomalies['time'], NWVF_anomalies['anomaly'], label='NWVF', color='black', lw=1)
 axs3[0, 1].hist(NWVF_anomalies['anomaly'], bins=30, color='black', alpha=0.5, orientation='horizontal', label='NWVF') # density=True,
 
